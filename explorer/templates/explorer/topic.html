@@ -1,0 +1,190 @@
+{% extends "explorer/base.html" %}
+
+{% load staticfiles %}
+{% load math_filters %}
+
+{% block content %}
+<div class="h1">{{ topic }}</div>
+
+<div class="row">
+    <div id="topic-stream" class="col-sm-12">
+    </div>
+</div>
+<div class="row">
+    <div class="panel col-sm-6">
+        <ul style="padding-left: 0px;">
+            {% for assignment in assigned_to %}
+            <li class="topic-details-term" style="font-size: {{ assignment.weight|weight_to_fontsize }};">{{ assignment.term.term }}</li>
+            {% endfor %}
+        </ul>
+
+            <h2>Related Topics
+            <span class="pull-right">
+                <button type="button" class="btn btn-primary btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+                </button></h2>
+
+            </span>
+            <table class="table table-condensed">
+                <tbody>
+                    {% for topic, colocation in topic_colocates %}
+                    <tr>
+                        <td><a href="{% url 'topic_detail' topic.id %}">{{ topic }}</a></td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="{{ colocation.weight|multiply:400 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ colocation.weight|multiply:400 }}%;">
+                                    {{ colocation.weight|round_weight }}
+                                    <span class="sr-only">{{ colocation.weight }} nPMI</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+    </div>
+    <div class="col-sm-6">
+        <div class="panel ">
+            <!-- <div class="panel-heading"> -->
+                <h4>This topic occurs in the following texts</h4>
+            <!-- </div> -->
+            <div  style="height: 500px; overflow-y: auto;">
+            <table class="table small-text table-condensed">
+                <thead>
+                    <tr>
+                        <td>Title</td>
+                        <td>Proportion</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for assignment in in_documents %}
+                    <tr>
+                        <td><a href="{% url 'document_detail' assignment.document.id %}">{{ assignment.document.title }}</a></td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" aria-valuenow="{{ assignment.weight }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ assignment.weight }}%;">
+                                    {{ assignment.weight|round_representation }}%
+                                    <span class="sr-only">{{ assignment.weight }} %</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Topic Co-Location</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    This graph shows all of the topics in the JHB Explorer <a href="#" data-toggle="tooltip" data-placement="top" title="What's that?">topic model</a>,
+                    and how those topics co-occur across the <em>Journal of the History of Biology</em> corpus.
+                </p>
+                <p>
+                    Each topic is represented by a bubble, known to graph-theory nerds as a <strong>"node"</strong>. If you click on a node, information about the
+                    correspoding topic will be shown at right. Each line between a pair of nodes is known as an <strong>"edge"</strong>. If there is an edge between
+                    two nodes, that means that the two corresponding topics frequently occur together (they are <strong>"co-located"</strong>) on pages in <em>JHB</em>.
+                </p>
+                <p>
+                    The width and opacity of each edge corresponds to the <strong><a href="#"  data-toggle="tooltip" data-placement="top" title="Huh?">normalized pointwise mutual information (nPMI)</a></strong> statistic for
+                    the two corresponding topics. ...
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+var n = 20, // number of layers
+    m = 200, // number of samples per layer
+    stack = d3.layout.stack().offset("wiggle"),
+    layers0 = stack(d3.range(n).map(function() { return bumpLayer(m); })),
+    layers1 = stack(d3.range(n).map(function() { return bumpLayer(m); }));
+
+var redraw = function() {
+
+    var width = parseInt(d3.select('#topic-stream').style('width'), 10),
+        height = 150;
+
+    var x = d3.scale.linear()
+        .domain([0, m - 1])
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .domain([0, d3.max(layers0.concat(layers1), function(layer) { return d3.max(layer, function(d) { return d.y0 + d.y; }); })])
+        .range([height, 0]);
+
+    var color = d3.scale.linear()
+        .range(["#aad", "#556"]);
+
+    var area = d3.svg.area()
+        .x(function(d) { return x(d.x); })
+        .y0(function(d) { return y(d.y0); })
+        .y1(function(d) { return y(d.y0 + d.y); });
+
+    var svg = d3.select("#topic-stream").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    svg.selectAll("path")
+        .data(layers0)
+        .enter().append("path")
+        .attr("d", area)
+        .style("fill", function() { return color(Math.random()); });
+}
+
+function transition() {
+    d3.selectAll("path")
+        .data(function() {
+            var d = layers1;
+            layers1 = layers0;
+            return layers0 = d;
+        })
+        .transition()
+        .duration(2500)
+        .attr("d", area);
+}
+
+// Inspired by Lee Byron's test data generator.
+function bumpLayer(n) {
+    function bump(a) {
+        var x = 1 / (.1 + Math.random()),
+            y = 2 * Math.random() - .5,
+            z = 10 / (.1 + Math.random());
+        for (var i = 0; i < n; i++) {
+            var w = (i / n - y) * z;
+            a[i] += x * Math.exp(-w * w);
+        }
+    }
+
+    var a = [], i;
+    for (i = 0; i < n; ++i) a[i] = 0;
+    for (i = 0; i < 5; ++i) bump(a);
+    return a.map(function(d, i) { return {x: i, y: Math.max(0, d)}; });
+}
+
+d3.select(window).on('resize', resize);
+redraw();
+
+function resize() {
+    $("#topic-stream").empty();
+    redraw();
+}
+
+</script>
+{% endblock %}

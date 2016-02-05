@@ -1,0 +1,50 @@
+.topic-details-terms-list {
+    font-size: 8pt;
+    padding-left: 10px;
+}
+
+#topic-details-terms-1 {
+    padding-left: 10px;
+}
+
+#topic-details-documents {
+    font-size: 8pt;
+    padding-left: 10px;
+    list-style-type: none;
+}
+
+.topic-details-term {
+    display: inline-block;
+    word-wrap: normal;
+    padding: 0px 5px 5px 0px;
+}
+
+.topic-details-document {
+    padding-bottom: 4px;
+}
+
+.topic-details>.panel-heading {
+    padding: 5px 10px 5px 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.topic-details>.panel-body {
+    padding: 5px;
+}
+
+
+.small-text {
+    font-size: 10pt;
+}
+
+.ellipsis {
+    white-space: nowrap;
+    overflow-x: hidden;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table {
+    table-layout:fixed;
+}

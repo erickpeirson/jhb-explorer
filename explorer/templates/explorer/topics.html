@@ -1,0 +1,269 @@
+{% extends "explorer/base.html" %}
+
+{% load staticfiles %}
+
+
+{% block extrahead %}
+<script src="{% static 'explorer/js/spin.min.js' %}"></script>
+<script src="{% static 'explorer/js/jquery.spin.js' %}"></script>
+<script src="{% static 'explorer/js/cytoscape.min.js' %}"></script>
+
+<script>
+// While awaiting a response to an ajax request, a spinner is shown in the
+//  network visualization panel.
+var opts = {
+  lines: 13 // The number of lines to draw
+, length: 21 // The length of each line
+, width: 14 // The line thickness
+, radius: 42 // The radius of the inner circle
+, scale: 1 // Scales overall size of the spinner
+, corners: 1 // Corner roundness (0..1)
+, color: '#297CA6' // #rgb or #rrggbb or array of colors
+, opacity: 0.25 // Opacity of the lines
+, rotate: 0 // The rotation offset
+, direction: 1 // 1: clockwise, -1: counterclockwise
+, speed: 1 // Rounds per second
+, trail: 62 // Afterglow percentage
+, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+, zIndex: 2e9 // The z-index (defaults to 2000000000)
+, className: 'spinner' // The CSS class to assign to the spinner
+, top: '40%' // Top position relative to parent
+, left: '50%' // Left position relative to parent
+, shadow: false // Whether to render a shadow
+, hwaccel: false // Whether to use hardware acceleration
+, position: 'absolute' // Element positioning
+}
+
+$(document)
+    .ajaxStart(function () {
+        $('#networkVisContainer').spin(opts);
+
+    })
+    .ajaxStop(function () {
+        $('#networkVisContainer').spin(false);
+    });
+
+
+// When the page is loaded, request the topic colocation network.
+$('body').ready(function() {
+    $.ajax('?data=graph', {
+        success: function(elements) {
+            // When the data is returned, generate an interative visualization
+            //  using Cytoscape.js.
+            var cy = cytoscape({
+                container: $('#cyTopics'),
+                elements: elements,
+                minZoom: 0.5,
+                maxZoom: 3,
+                style: [    // The stylesheet for the graph.
+                    {
+                        // Node size is a function of topic prevalence.
+                        selector: 'node',
+                        style: {
+                            'background-color': '#297CA6',
+                            'label': 'data(id)',
+                            'width': 'mapData(size, 200, 1300, 20, 35)',
+                            'height': 'mapData(size, 200, 1300, 20, 35)',
+                            'font-size': 'mapData(size, 200, 1300, 8, 36)'
+                        }
+                    },
+                    {
+                        // When a node is selected, it should be slightly larger
+                        //  and have a colored border.
+                        selector: 'node:selected',
+                        style: {
+                            'border-color': '#FFA500',
+                            'border-width': 4,
+                            'width': 'mapData(size, 200, 1300, 30, 60)',
+                            'height': 'mapData(size, 200, 1300, 30, 60)',
+                        }
+                    },
+                    {
+                        // Active nodes should be slightly larger.
+                        selector: 'node:active',
+                        style: {
+                            'width': 'mapData(size, 200, 1300, 30, 60)',
+                            'height': 'mapData(size, 200, 1300, 30, 60)',
+                        }
+                    },
+                    {
+                        // Edge weight is a function of nPMI.
+                        selector: 'edge',
+                        style: {
+                            'width': 'mapData(weight, 0.1, 0.3, 0.5, 6)',
+                            'opacity': 'mapData(weight, 0.1, 0.3, 0.1, 1)',
+                            'line-color': '#A65329',
+                            'target-arrow-color': '#ccc',
+                        }
+                    },
+                    {
+                        // A selected edge should be slightly thicker, and be
+                        //  colored a brighter color.
+                        selector: 'edge:selected',
+                        style: {
+                            'width': 'mapData(weight, 0.1, 0.3, 2, 8)',
+                            'opacity': 1,
+                            'line-color': 'orange',
+                        }
+                    },
+                ],
+
+                // The CoSE layout is a force-directed layout.
+                layout: {
+                    name: 'cose',
+                    nodeOverlap: 20,
+                    idealEdgeLength: function( edge ){ return  2./(edge.weight); },
+                    edgeElasticity: function( edge ){ return 1000; },
+                    boundingBox:  { x1: 0, y1: 0, w: 900, h: 900},
+                    gravity: 50,
+                    numIter: 5000,
+                }
+            });
+
+            // When a node is clicked, information about the corresponding topic
+            //  is displayed in a neighboring panel.
+            cy.on( 'click', 'node', function(event) {
+                var node = event.cyTarget;  // The node that was clicked.
+
+                $('.topic-details').css('visibility', 'visible');
+
+                // The second topic-details panel is hidden.
+                $('#topic-details-terms-2-list').empty();
+                $('.topic-details-2').css('visibility', 'hidden');
+                $('#topic-details-heading-2').empty();
+
+                $('#topic-details-documents-heading').text('Occurs in...');
+
+                $('#topic-details-heading-1')
+                    .text('Topic ' + node._private.data.id);
+                $('#topic-details-terms-1-list').empty();
+                node._private.data.terms.forEach(function(term) {
+                    $('#topic-details-terms-1-list')
+                        .append('<li class="topic-details-term" style="font-size: '+ term.weight*1.5 +';">' + term.term + '</li>');
+                });
+                $('#topic-details-1-link').attr('href', '/topics/' + node._private.data.id + '/');
+                $('#topic-details-1-link').css('visibility', 'visible');
+
+                $('#topic-details-documents').empty();
+                node._private.data.documents.forEach(function(doc) {
+                    $('#topic-details-documents')
+                        .append('<li class="topic-details-document"><a href="/documents/'+ doc.id +'/">(' + doc.pubdate + ') '+ doc.title +'</a></li>');
+                });
+            });
+
+            cy.on('click', 'edge', function(event) {
+                var edge = event.cyTarget;  // The edge that was clicked.
+                $('.topic-details').css('visibility', 'visible');
+                $('.topic-details-2').css('visibility', 'visible');
+
+                $('#topic-details-heading-1').text('Topic ' + edge._private.source._private.data.id);
+                $('#topic-details-heading-2').text('Topic ' + edge._private.target._private.data.id);
+                $('#topic-details-documents-heading').text('Occur together in...');
+
+                $('#topic-details-terms-1-list').empty();
+                edge._private.source._private.data.terms.forEach(function(term) {
+                    $('#topic-details-terms-1-list').append('<li class="topic-details-term" style="font-size: '+ term.weight*1.5 +';">' + term.term + '</li>');
+                });
+
+                $('#topic-details-terms-2-list').empty();
+                edge._private.target._private.data.terms.forEach(function(term) {
+                    $('#topic-details-terms-2-list').append('<li class="topic-details-term" style="font-size: '+ term.weight*1.5 +';">' + term.term + '</li>');
+                });
+
+                $('#topic-details-documents').empty();
+                edge._private.data.documents.forEach(function(doc) {
+                    $('#topic-details-documents').append('<li class="topic-details-document"><a href="/documents/'+ doc.id +'/">(' + doc.pubdate + ') '+ doc.title +'</a></li>');
+                });
+                $('#topic-details-1-link').css('visibility', 'hidden');
+            });
+
+        }
+    });
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-sm-8">
+        <span class="pull-right">
+            <button type="button" class="btn btn-primary btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+            </button>
+
+        </span>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-8" id="networkVisContainer">
+        <div id="cyTopics" style="height: 600px;">
+        </div>
+        <span class="text text-muted text-small">Use your mouse wheel or track pad to zoom in and out. Click on a topic to view details. Click on an edge between two topics for details about their relationship.</span>
+    </div>
+    <div class="col-sm-4">
+        <div class="panel topic-details" style="visibility: hidden;">
+            <div class="panel-heading clearfix">
+                <span class="h4" id="topic-details-heading-1"></span>
+                <span class="pull-right btn-group">
+                    <a id="topic-details-1-link" type="button" href="" class="btn btn-default btn-xs" aria-label="Details">
+                        <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Details
+                    </a>
+                </span>
+            </div>
+            <div class="panel-body" id="topic-details-terms-1">
+                <ul id="topic-details-terms-1-list" class="topic-details-terms-list">
+                </ul>
+            </div>
+            <div class="panel topic-details-2" style="visibility: hidden;">
+                <span class="h4" id="topic-details-heading-2"></span>
+            </div>
+            <div class="panel-body topic-details-2" id="topic-details-terms-2" style="visibility: hidden;">
+                <ul id="topic-details-terms-2-list" class="topic-details-terms-list">
+                </ul>
+            </div>
+        </div>
+        <div class="panel topic-details" style="visibility: hidden;">
+            <div class="panel-heading h4" id="topic-details-documents-heading"></div>
+            <div class="panel-body">
+                <ul id="topic-details-documents">
+                </ul>
+                <span class="pull-right"><a href="#">More...</a></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">The Topic Co-Location Graph</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    This graph shows all of the topics in the JHB Explorer <a href="#" data-toggle="tooltip" data-placement="top" title="What's that?">topic model</a>,
+                    and how those topics co-occur across the <em>Journal of the History of Biology</em> corpus.
+                </p>
+                <p>
+                    Each topic is represented by a bubble, known to graph-theory nerds as a <strong>"node"</strong>. If you click on a node, information about the
+                    correspoding topic will be shown at right. Each line between a pair of nodes is known as an <strong>"edge"</strong>. If there is an edge between
+                    two nodes, that means that the two corresponding topics frequently occur together (they are <strong>"co-located"</strong>) on pages in <em>JHB</em>.
+                </p>
+                <p>
+                    The width and opacity of each edge corresponds to the <strong><a href="#"  data-toggle="tooltip" data-placement="top" title="Huh?">normalized pointwise mutual information (nPMI)</a></strong> statistic for
+                    the two corresponding topics. ...
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
