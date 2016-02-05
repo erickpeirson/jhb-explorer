@@ -185,7 +185,7 @@ def document(request, document_id):
     document = get_object_or_404(JHBArticle, pk=document_id)
     data = request.GET.get('data', None)
     pages = document.pages.order_by('page_number')
-    topics = [page.contains_topic.order_by('-weight') for page in pages]
+    topics = [page.contains_topic.filter(weight__gte=10).order_by('-weight') for page in pages]
     weights = []
     allTopics = sorted(list(set([assignment.topic.id for page in topics for assignment in page])))
     for assignments in topics:
@@ -199,12 +199,10 @@ def document(request, document_id):
         weights.append(tweights)
 
     if data == 'chart':
-
-
         elements = {
             'allTopics': allTopics,
             'pages': [page.page_number for page in pages],
-            'weights': weights
+            'weights': weights,
         }
 
         response_data = json.dumps(elements, indent=4)
@@ -217,6 +215,7 @@ def document(request, document_id):
         context = RequestContext(request, {
             'document': document,
             'pages': zip(pages, topics),
+            'active': 'documents',
         })
         return HttpResponse(template.render(context))
 

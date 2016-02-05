@@ -48,3 +48,11 @@
 .table {
     table-layout:fixed;
 }
+
+.topicbar {
+    opacity: 0.5;
+}
+
+.topicbar.highlight {
+    opacity: 1.0;
+}
