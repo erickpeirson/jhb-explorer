@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-class JHBArticle(models.Model):  # Done
+class Document(models.Model):  # Done
     """
     Represents an article in the Journal of the History of Biology.
     """
@@ -18,7 +18,7 @@ class JHBArticle(models.Model):  # Done
     issue = models.CharField(max_length=10)
     """Issue (in ``volume``) of JHB in which the article was published."""
 
-    cites = models.ManyToManyField('JHBArticle', related_name='cited_by')
+    cites = models.ManyToManyField('Document', related_name='cited_by')
 
     authors = models.ManyToManyField('Author', related_name='works')
 
@@ -32,7 +32,7 @@ class JHBArticle(models.Model):  # Done
 
 class Author(models.Model):
     """
-    Represents an author of JHB articles.
+    Represents an author of a Document.
     """
 
     surname = models.CharField(max_length=255)
@@ -43,7 +43,7 @@ class Author(models.Model):
 
 
 class Page(models.Model):    # Done
-    belongs_to = models.ForeignKey('JHBArticle', related_name='pages')
+    belongs_to = models.ForeignKey('Document', related_name='pages')
     page_number = models.IntegerField(default=0)
 
     def __unicode__(self):
@@ -149,7 +149,7 @@ class TopicDocumentAssignment(models.Model):     # Done
     Represents the association between a document and a topic.
     """
 
-    document = models.ForeignKey('JHBArticle', related_name='contains_topic')
+    document = models.ForeignKey('Document', related_name='contains_topic')
     """The document to which ``topic`` is assigned."""
 
     topic = models.ForeignKey('Topic', related_name='in_documents')
@@ -185,7 +185,7 @@ class TermPageAssignment(models.Model):     # Done
 
 class TermDocumentAssignment(models.Model):  # Done
     term = models.ForeignKey('Term', related_name='occurs_in')
-    document = models.ForeignKey('JHBArticle', related_name='contains_terms')
+    document = models.ForeignKey('Document', related_name='contains_terms')
     weight = models.IntegerField(default=0)
 
 
@@ -214,3 +214,31 @@ class Entity(models.Model):
     """
     label = models.CharField(max_length=500)
     entity_type = models.CharField(max_length=100)
+
+
+class BibliographicCoupling(models.Model):
+    """
+    Represents the fact that the references of two :class:`.Document`\s are
+    overlapping.
+
+    This is a symmetric relation, but we use ``source`` and ``target`` to keep
+    Django happy.
+    """
+
+    source = models.ForeignKey('Document', related_name='couplings_from')
+    target = models.ForeignKey('Document', related_name='couplings_to')
+    weight = models.FloatField(default=0.0,
+                               validators=[MinValueValidator(0.0),
+                                           MaxValueValidator(1.0)])
+    """
+    Mean percent overlap of the two bibliographies.
+    """
+
+
+# class EntityOccurrence(models.Model):
+#     entity = models.ForeignKey('Entity', related_name='occurrences')
+#     page = models.ForeignKey('Page', related_name='entities')
+#     weight = models.FloatField(default=0.0)
+#     """
+#     Frequency of entity occurrences on the Page.
+#     """

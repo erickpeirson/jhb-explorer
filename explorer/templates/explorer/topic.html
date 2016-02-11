@@ -7,7 +7,9 @@
 <div class="h1">{{ topic }}</div>
 
 <div class="row">
-    <div id="topic-stream" class="col-sm-12">
+    <div  class="col-sm-12">
+        <div id="topic-stream">
+        </div>
     </div>
 </div>
 <div class="row">
@@ -110,11 +112,14 @@
 
 <script>
 
-var n = 20, // number of layers
-    m = 200, // number of samples per layer
-    stack = d3.layout.stack().offset("wiggle"),
-    layers0 = stack(d3.range(n).map(function() { return bumpLayer(m); })),
-    layers1 = stack(d3.range(n).map(function() { return bumpLayer(m); }));
+var layers,
+    years,
+    m,
+    n=20,
+    stack = d3.layout.stack().offset("wiggle");
+
+var color = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"];
+var thisColor = color[Math.floor(Math.random() * color.length)];
 
 var redraw = function() {
 
@@ -126,26 +131,42 @@ var redraw = function() {
         .range([0, width]);
 
     var y = d3.scale.linear()
-        .domain([0, d3.max(layers0.concat(layers1), function(layer) { return d3.max(layer, function(d) { return d.y0 + d.y; }); })])
+        .domain([0, d3.max(layers, function(layer) { return d3.max(layer, function(d) { return d.y0 + d.y; }); })])
         .range([height, 0]);
 
-    var color = d3.scale.linear()
-        .range(["#aad", "#556"]);
+
 
     var area = d3.svg.area()
+        .interpolate("basis")
         .x(function(d) { return x(d.x); })
         .y0(function(d) { return y(d.y0); })
         .y1(function(d) { return y(d.y0 + d.y); });
+
+    var axis = d3.svg.axis()
+        .scale(x)
+        .orient("top")
+        .tickFormat(function(d, i) {
+            return String(years[d]);
+        });
 
     var svg = d3.select("#topic-stream").append("svg")
         .attr("width", width)
         .attr("height", height);
 
     svg.selectAll("path")
-        .data(layers0)
+        .data(layers)
         .enter().append("path")
         .attr("d", area)
-        .style("fill", function() { return color(Math.random()); });
+        .style("fill", thisColor);
+
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(axis)
+                .selectAll('text')  // Rotate and reposition x axis labels.
+                .attr("transform", "rotate(-90)" )
+                    .attr("dx", height/2)
+                    .attr("dy", "1.7em");
 }
 
 function transition() {
@@ -160,31 +181,33 @@ function transition() {
         .attr("d", area);
 }
 
-// Inspired by Lee Byron's test data generator.
-function bumpLayer(n) {
-    function bump(a) {
-        var x = 1 / (.1 + Math.random()),
-            y = 2 * Math.random() - .5,
-            z = 10 / (.1 + Math.random());
-        for (var i = 0; i < n; i++) {
-            var w = (i / n - y) * z;
-            a[i] += x * Math.exp(-w * w);
-        }
-    }
 
-    var a = [], i;
-    for (i = 0; i < n; ++i) a[i] = 0;
-    for (i = 0; i < 5; ++i) bump(a);
-    return a.map(function(d, i) { return {x: i, y: Math.max(0, d)}; });
-}
-
-d3.select(window).on('resize', resize);
-redraw();
 
 function resize() {
     $("#topic-stream").empty();
     redraw();
 }
+
+
+d3.json("/topics/{{ topic.id }}/?data=time", function(data) {
+
+
+    n = 20; // number of layers
+    m = data.values.length; // number of samples per layer
+
+    var a = [], i;
+    for (i = 0; i < m; ++i) a[i] = 0;
+    var series = a.map(function(d, i) { return {x: i, y: data.values[i]}; });
+    // console.log(data.values);
+    layers = stack([series]);
+    years = data.dates;
+    redraw(layers);
+
+    d3.select(window).on('resize', resize);
+
+});
+
+
 
 </script>
 {% endblock %}

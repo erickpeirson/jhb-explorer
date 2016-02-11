@@ -56,3 +56,27 @@
 .topicbar.highlight {
     opacity: 1.0;
 }
+
+.topicbar.selected {
+    opacity: 1.0;
+}
+
+
+axis path,
+.axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+}
+
+.domain {
+    visibility: hidden;
+}
+.tick > line {
+    visibility: hidden;
+}

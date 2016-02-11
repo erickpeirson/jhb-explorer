@@ -11,7 +11,7 @@ class TopicPageAssignmentAdmin(admin.ModelAdmin):
 
     readonly_fields = ('page', 'topic')
 
-admin.site.register(JHBArticle)
+admin.site.register(Document)
 admin.site.register(Author)
 admin.site.register(Page)
 admin.site.register(Topic)

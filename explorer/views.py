@@ -6,9 +6,12 @@ from django.db.models import Q
 from rest_framework.renderers import JSONRenderer
 from django.core.cache import caches
 
+from collections import Counter
+
 cache = caches['default']
 
 import json
+import igraph
 
 from explorer.serializers import TopicSerializer
 from explorer.models import *
@@ -23,8 +26,32 @@ def topics_json(request):
     renderer = JSONRenderer()
     response_data = renderer.render(serializer.data,
                                     'application/json; indent=4')
-    content_type = "application/json"
-    return HttpResponse(response_data, content_type=content_type)
+    return HttpResponse(response_data, content_type="application/json")
+
+
+def topic_time(request, topic_id):
+    """
+    Genereate a JSON response containing time-series data for a single topic.
+    """
+
+    queryset = TopicDocumentAssignment.objects.filter(topic_id=topic_id).order_by('document__publication_date')
+    by_date = Counter()
+    for assignment in queryset:
+        pubdate = assignment.document.publication_date
+        by_date[pubdate] += assignment.weight
+
+    response_data = json.dumps({'dates': by_date.keys(), 'values': by_date.values()})
+    return HttpResponse(response_data, content_type='application/json')
+
+
+def topics_time(request):
+    """
+    Generates a JSON response containing information about the representation of
+    topics over time.
+    """
+
+
+    return HttpResponse(response_data, content_type='application/json')
 
 
 def topics_graph(request):
@@ -35,7 +62,10 @@ def topics_graph(request):
     queryset = Topic.objects.all()
     response_data = cache.get('topic_graph')
     if response_data is None:
+        graph = igraph.Graph()
+
         elements = []
+        nodes = []
         minsize = 5000
         maxsize = 0
         for topic in queryset:
@@ -44,7 +74,8 @@ def topics_graph(request):
             min_weight = min([term.weight for term in terms])
 
             documents = [doc for doc in topic.in_documents.order_by('-weight')[:5]]
-            elements.append({
+            graph.add_vertex(topic.id)
+            nodes.append({
                 'data': {
                     'id': str(topic.id),
                     'size': topic.in_documents.count(),
@@ -58,7 +89,7 @@ def topics_graph(request):
                     ],
                     'documents': [
                         {
-                            'id': occurrence.id,
+                            'id': occurrence.document.id,
                             'title': occurrence.document.title,
                             'pubdate': occurrence.document.publication_date,
                             'weight': occurrence.weight,
@@ -70,9 +101,12 @@ def topics_graph(request):
 
         edges = {}
         for colocate in TopicCoLocation.objects.all():
+            # if colocate.weight < 0.14:
+            #     continue
             pair = tuple(sorted([colocate.source.id, colocate.target.id]))
             if pair not in edges:
                 documents = set([page.belongs_to for page in colocate.pages.all()[:10]])
+
                 edges[pair] = {
                     'data': {
                         'id': 'colocate_' + str(colocate.id),
@@ -90,9 +124,23 @@ def topics_graph(request):
                     }
                 }
 
+
+
+        graph.add_edges(edges.keys())
+        layout = graph.layout_fruchterman_reingold()
+        bbox = igraph.BoundingBox(900.,900.)
+        layout.fit_into(bbox)
+        for node in nodes:
+            x, y = tuple(layout[int(node['data']['id'])])
+            node['data']['pos'] = {
+                'x': x,
+                'y': y,
+            }
+            elements.append(node)
         elements += edges.values()
+
         response_data = json.dumps(elements, indent=4)
-        cache.set('topic_graph', response_data, 3600)
+        cache.set('topic_graph', response_data, 36000)
     content_type = "application/json"
     return HttpResponse(response_data, content_type=content_type)
 
@@ -126,23 +174,37 @@ def topic(request, topic_id):
     occurs, top associated terms, associated entities, etc.
     """
     topic = get_object_or_404(Topic, pk=topic_id)
+    data = request.GET.get('data', None)
 
-    template = loader.get_template('explorer/topic.html')
+    if data == 'json':
+        data = {
+            'id': topic.id,
+            'label': topic.__unicode__(),
+            'terms': [{
+                'term': assignment.term.term,
+                'weight': assignment.weight,
+                } for assignment in topic.assigned_to.order_by('-weight')[:20]],
+        }
+        return HttpResponse(json.dumps(data), content_type='application/json')
+    elif data == 'time':
+        return topic_time(request, topic_id)
+    else:   # Render HTML view.
+        template = loader.get_template('explorer/topic.html')
 
-    topic_colocates = []
-    for colocated_topic in topic.colocated_with.all():
-        colocation = TopicCoLocation.objects.get(Q(source_id=topic.id) & Q(target_id=colocated_topic.id))
-        topic_colocates.append((colocated_topic, colocation))
+        topic_colocates = []
+        for colocated_topic in topic.colocated_with.all():
+            colocation = TopicCoLocation.objects.get(Q(source_id=topic.id) & Q(target_id=colocated_topic.id))
+            topic_colocates.append((colocated_topic, colocation))
 
-    context = RequestContext(request, {
-        'topic': topic,
-        'associated_topics': topic.associated_with.all(),
-        'topic_colocates': topic_colocates,
-        'in_documents': topic.in_documents.filter(weight__gte=10).order_by('-weight'),
-        'assigned_to': topic.assigned_to.order_by('-weight')[:20],
-        'active': 'topics',
-    })
-    return HttpResponse(template.render(context))
+        context = RequestContext(request, {
+            'topic': topic,
+            'associated_topics': topic.associated_with.all(),
+            'topic_colocates': topic_colocates,
+            'in_documents': topic.in_documents.filter(weight__gte=10).order_by('-weight'),
+            'assigned_to': topic.assigned_to.order_by('-weight')[:20],
+            'active': 'topics',
+        })
+        return HttpResponse(template.render(context))
 
 
 def authors(request):
@@ -182,7 +244,7 @@ def document(request, document_id):
     distribution of topics across individual pages, citations, etc.
     """
 
-    document = get_object_or_404(JHBArticle, pk=document_id)
+    document = get_object_or_404(Document, pk=document_id)
     data = request.GET.get('data', None)
     pages = document.pages.order_by('page_number')
     topics = [page.contains_topic.filter(weight__gte=10).order_by('-weight') for page in pages]

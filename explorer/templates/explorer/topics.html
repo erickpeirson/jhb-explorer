@@ -68,6 +68,20 @@ $('body').ready(function() {
                         }
                     },
                     {
+                        selector: 'node.connectedNodes',
+                        style: {
+                            opacity: 1.0,
+                            // 'border-color': '#FFA500',
+                            // 'border-width': 2,
+                        }
+                    },
+                    {
+                        selector: 'node.nonConnectedNodes',
+                        style: {
+                            'opacity': 0.5,
+                        }
+                    },
+                    {
                         // When a node is selected, it should be slightly larger
                         //  and have a colored border.
                         selector: 'node:selected',
@@ -97,6 +111,15 @@ $('body').ready(function() {
                         }
                     },
                     {
+                        selector: 'edge.connectedEdge',
+                        style: {
+                            'opacity': 1,
+                            'line-color': '#FFA500',
+                            'z-index': 500,
+                            'width': 'mapData(weight, 0.1, 0.3, 1, 12)',
+                        }
+                    },
+                    {
                         // A selected edge should be slightly thicker, and be
                         //  colored a brighter color.
                         selector: 'edge:selected',
@@ -110,13 +133,16 @@ $('body').ready(function() {
 
                 // The CoSE layout is a force-directed layout.
                 layout: {
-                    name: 'cose',
-                    nodeOverlap: 20,
-                    idealEdgeLength: function( edge ){ return  2./(edge.weight); },
-                    edgeElasticity: function( edge ){ return 1000; },
+                    name: 'preset',
+                    positions: function(d) {
+                        return d._private.data.pos;
+                    },
+                    // nodeOverlap: 20,
+                    // idealEdgeLength: function( edge ){ return  2./(edge.weight); },
+                    // edgeElasticity: function( edge ){ return 1000; },
                     boundingBox:  { x1: 0, y1: 0, w: 900, h: 900},
-                    gravity: 50,
-                    numIter: 5000,
+                    // gravity: 50,
+                    // numIter: 5000,
                 }
             });
 
@@ -149,6 +175,22 @@ $('body').ready(function() {
                     $('#topic-details-documents')
                         .append('<li class="topic-details-document"><a href="/documents/'+ doc.id +'/">(' + doc.pubdate + ') '+ doc.title +'</a></li>');
                 });
+
+
+                var directlyConnected = node.neighborhood();
+
+                directlyConnected.nodes().removeClass('nonConnectedNodes');
+                directlyConnected.nodes().addClass('connectedNodes');
+
+                var nonConnected = cy.elements().difference( directlyConnected );
+                nonConnected.nodes().addClass('nonConnectedNodes');
+                nonConnected.nodes().removeClass('connectedNodes');
+
+                node.removeClass('nonConnectedNodes');
+
+                node.neighborhood('edge').edges().addClass('connectedEdge');
+                cy.elements('edge').difference(node.neighborhood('edge')).edges().removeClass('connectedEdge');
+
             });
 
             cy.on('click', 'edge', function(event) {
@@ -175,6 +217,7 @@ $('body').ready(function() {
                     $('#topic-details-documents').append('<li class="topic-details-document"><a href="/documents/'+ doc.id +'/">(' + doc.pubdate + ') '+ doc.title +'</a></li>');
                 });
                 $('#topic-details-1-link').css('visibility', 'hidden');
+
             });
 
         }
