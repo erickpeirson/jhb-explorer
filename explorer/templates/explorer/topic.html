@@ -4,82 +4,107 @@
 {% load math_filters %}
 
 {% block content %}
-<div class="h1">{{ topic }}</div>
+<!-- <div class="container-fluid" style="background-color: white;"> -->
 
-<div class="row">
-    <div  class="col-sm-12">
-        <div id="topic-stream">
+<!-- </div> -->
+
+
+<div id="topic-stream-container">
+    <div id="topic-stream">
+    </div>
+    <div class="container-fluid">
+        <span class="h1 display-1 page-title">{{ topic }}</span>
+        <span class="h4 text-muted pull-right">Topic representation over time
+            <button type="button" class="btn btn-primary btn-xs" aria-label="Info" data-toggle="modal" data-target="#topicStreamModal">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+            </button>
+
+        </span>
+    </div>
+</div>
+<div class="container-fluid" style="margin-top: 200px;">
+    <!-- <div class="container-fluid"> -->
+
+
+    <!-- </div> -->
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="row">
+                <div class="panel">
+                    <div class="panel-body">
+                        <ul style="padding-left: 0px;">
+                            {% for assignment in assigned_to %}
+                            <li class="topic-details-term" style="font-size: {{ assignment.weight|weight_to_fontsize }};">{{ assignment.term.term }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <span class="h3">Related Topics
+                            <span class="pull-right">
+                                <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
+                                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+                                </button>
+                            </span>
+                        </span>
+                    </div>
+                    <table class="table table-condensed">
+                        <tbody>
+                            {% for topic, colocation in topic_colocates %}
+                            <tr>
+                                <td><a href="{% url 'topic_detail' topic.id %}">{{ topic }}</a></td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="{{ colocation.weight|multiply:400 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ colocation.weight|multiply:400 }}%;">
+                                            {{ colocation.weight|round_weight }}
+                                            <span class="sr-only">{{ colocation.weight }} nPMI</span>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <span class="h3 display-3">Occurs in...</span>
+                </div>
+                <div  style="height: 500px; overflow-y: auto;">
+                <table class="table small-text table-condensed">
+                    <thead>
+                        <tr>
+                            <td>Title</td>
+                            <td>Proportion</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assignment in in_documents %}
+                        <tr>
+                            <td><a href="{% url 'document_detail' assignment.document.id %}">{{ assignment.document.title }}</a></td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{ assignment.weight }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ assignment.weight }}%;">
+                                        {{ assignment.weight|round_representation }}%
+                                        <span class="sr-only">{{ assignment.weight }} %</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
         </div>
     </div>
 </div>
-<div class="row">
-    <div class="panel col-sm-6">
-        <ul style="padding-left: 0px;">
-            {% for assignment in assigned_to %}
-            <li class="topic-details-term" style="font-size: {{ assignment.weight|weight_to_fontsize }};">{{ assignment.term.term }}</li>
-            {% endfor %}
-        </ul>
-
-            <h2>Related Topics
-            <span class="pull-right">
-                <button type="button" class="btn btn-primary btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
-                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
-                </button></h2>
-
-            </span>
-            <table class="table table-condensed">
-                <tbody>
-                    {% for topic, colocation in topic_colocates %}
-                    <tr>
-                        <td><a href="{% url 'topic_detail' topic.id %}">{{ topic }}</a></td>
-                        <td>
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar" aria-valuenow="{{ colocation.weight|multiply:400 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ colocation.weight|multiply:400 }}%;">
-                                    {{ colocation.weight|round_weight }}
-                                    <span class="sr-only">{{ colocation.weight }} nPMI</span>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-    </div>
-    <div class="col-sm-6">
-        <div class="panel ">
-            <!-- <div class="panel-heading"> -->
-                <h4>This topic occurs in the following texts</h4>
-            <!-- </div> -->
-            <div  style="height: 500px; overflow-y: auto;">
-            <table class="table small-text table-condensed">
-                <thead>
-                    <tr>
-                        <td>Title</td>
-                        <td>Proportion</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for assignment in in_documents %}
-                    <tr>
-                        <td><a href="{% url 'document_detail' assignment.document.id %}">{{ assignment.document.title }}</a></td>
-                        <td>
-                            <div class="progress">
-                                <div class="progress-bar" role="progressbar" aria-valuenow="{{ assignment.weight }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ assignment.weight }}%;">
-                                    {{ assignment.weight|round_representation }}%
-                                    <span class="sr-only">{{ assignment.weight }} %</span>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        </div>
-    </div>
-</div>
-
 <!-- Modal -->
 <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal">
     <div class="modal-dialog" role="document">
@@ -90,17 +115,40 @@
             </div>
             <div class="modal-body">
                 <p>
-                    This graph shows all of the topics in the JHB Explorer <a href="#" data-toggle="tooltip" data-placement="top" title="What's that?">topic model</a>,
-                    and how those topics co-occur across the <em>Journal of the History of Biology</em> corpus.
+                    The topics in this list tend to co-occur with the current topic more frequently than we would
+                    expect by chance alone. The value shown next to each topic is the <strong>normalized pointwise
+                    mutual information (nPMI)</strong> between that topic and the current topic. The higher the nPMI,
+                    the more likely it is that the listed topic and the current topic are related in some way. Only
+                    topics with an nPMI in the upper 98th percentile are shown.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="topicStreamModal" tabindex="-1" role="dialog" aria-labelledby="topicStreamModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Topic Representation Over Time</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    This stream plot shows the relative representation of this topic in the JHB corpus over time.
+                    To calculate the relative representation of the topic in a given year we sum up the proportion of
+                    each document that is about the topic, and then normalize that value by the number of documents
+                    published in that year.
                 </p>
                 <p>
-                    Each topic is represented by a bubble, known to graph-theory nerds as a <strong>"node"</strong>. If you click on a node, information about the
-                    correspoding topic will be shown at right. Each line between a pair of nodes is known as an <strong>"edge"</strong>. If there is an edge between
-                    two nodes, that means that the two corresponding topics frequently occur together (they are <strong>"co-located"</strong>) on pages in <em>JHB</em>.
-                </p>
-                <p>
-                    The width and opacity of each edge corresponds to the <strong><a href="#"  data-toggle="tooltip" data-placement="top" title="Huh?">normalized pointwise mutual information (nPMI)</a></strong> statistic for
-                    the two corresponding topics. ...
+                    Caution should be exercised when interpreting changes in the prominence of a single topic over time.
+                    Since the representation across all topics should sum up to 100% in each year, an increase or decrease
+                    in the prominence of any one topic may be due to changes in the literature that are completely
+                    unrelated to the topic itself. This graph should be used only as a starting-point that can
+                    prompt questions or hyptheses about potential trends that can be investigated further.
                 </p>
             </div>
             <div class="modal-footer">
@@ -118,13 +166,14 @@ var layers,
     n=20,
     stack = d3.layout.stack().offset("wiggle");
 
-var color = ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"];
+    var color = ["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
+                 "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
+                 "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788"];
 var thisColor = color[Math.floor(Math.random() * color.length)];
 
 var redraw = function() {
-
     var width = parseInt(d3.select('#topic-stream').style('width'), 10),
-        height = 150;
+        height = parseInt(d3.select('#topic-stream').style('height'), 10);
 
     var x = d3.scale.linear()
         .domain([0, m - 1])
@@ -133,8 +182,6 @@ var redraw = function() {
     var y = d3.scale.linear()
         .domain([0, d3.max(layers, function(layer) { return d3.max(layer, function(d) { return d.y0 + d.y; }); })])
         .range([height, 0]);
-
-
 
     var area = d3.svg.area()
         .interpolate("basis")
@@ -181,8 +228,6 @@ function transition() {
         .attr("d", area);
 }
 
-
-
 function resize() {
     $("#topic-stream").empty();
     redraw();
@@ -190,8 +235,6 @@ function resize() {
 
 
 d3.json("/topics/{{ topic.id }}/?data=time", function(data) {
-
-
     n = 20; // number of layers
     m = data.values.length; // number of samples per layer
 
@@ -202,12 +245,7 @@ d3.json("/topics/{{ topic.id }}/?data=time", function(data) {
     layers = stack([series]);
     years = data.dates;
     redraw(layers);
-
     d3.select(window).on('resize', resize);
-
 });
-
-
-
 </script>
 {% endblock %}

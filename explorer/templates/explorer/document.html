@@ -3,68 +3,90 @@
 {% load staticfiles %}
 
 {% block content %}
-<div class="row">
-    <div class="panel col-sm-9">
-        <h4 class="text-muted pull-right">Topic representation on each page</h4>
-        <div id="topic-barchart"></div>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-9">
+            <div class="panel">
+                <div class="panel-heading">
+                    <h4 class="text-muted pull-right">Topic representation on each page</h4>
+                </div>
+                <div class="panel-body">
+                    <div id="topic-barchart"></div>
 
-        <h2>{{ document.title }}
-            <!-- <span class="pull-right btn-group"> -->
-                {% if document.doi %}
-                <a type="button" href="http://www.jstor.org/stable/{{ document.doi }}" target="_blank" class="btn" aria-label="JSTOR">
-                    <img style="height: 30px;" src="{% static "explorer/images/jstor_logo.jpg" %}" />
-                    <!-- <span class="glyphicon glyphicon-link" aria-hidden="true"></span> -->
-                </a>
-                {% endif %}
-            <!-- </span> -->
-        </h2>
-        <h3>{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</h3>
-        <ul>
-            {% for author in document.authors.all %}
-            <li>
-                <a href="{% url "author_detail" author.id  %}">{{ author.forename.title }} {{ author.surname.title }}</a>
-            </li>
-            {%endfor%}
+                    <h2>{{ document.title }}
+                        <!-- <span class="pull-right btn-group"> -->
+                            {% if document.doi %}
+                            <a type="button" href="http://www.jstor.org/stable/{{ document.doi }}" target="_blank" class="btn" aria-label="JSTOR">
+                                <img style="height: 30px;" src="{% static "explorer/images/jstor_logo.jpg" %}" />
+                                <!-- <span class="glyphicon glyphicon-link" aria-hidden="true"></span> -->
+                            </a>
+                            {% endif %}
+                        <!-- </span> -->
+                    </h2>
+                    <h3>{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</h3>
+                    <ul>
+                        {% for author in document.authors.all %}
+                        <li>
+                            <a href="{% url "author_detail" author.id  %}">{{ author.forename.title }} {{ author.surname.title }}</a>
+                        </li>
+                        {%endfor%}
 
-        </ul>
-    </div>
-    <div class="col-sm-3">
-        <div class="panel panel-default" id="topic-details" style="visibility: hidden;">
-            <div class="panel-heading" id="topic-details-heading">
-                <a id="topic-details-title" href="" class="h5"></a>
+                    </ul>
+                </div>
             </div>
-            <div class="panel-body">
-                <ul style="padding-left: 0px;" id="topic-details-terms">
-                </ul>
-            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="panel panel-default" id="topic-details" style="visibility: hidden;">
+                <div class="panel-heading clearfix" id="topic-details-heading">
+                    <span id="topic-details-title" class="h5"></span>
+                    <span class="pull-right btn-group">
+                        <a id="topic-details-link" type="button" href="" class="btn btn-default btn-xs" aria-label="Details">
+                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Details
+                        </a>
+                    </span>
+                </div>
+                <div class="panel-body">
+                    <ul style="padding-left: 0px;" id="topic-details-terms">
+                    </ul>
+                </div>
 
+            </div>
         </div>
     </div>
 </div>
 
-
-<div class="row">
-    <div class="col-sm-8">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <strong>Entities</strong>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span class="h3">Organisms</span>
+                </div>
+                <!-- <div class="panel-body"> -->
+                    <ul class="list-group">
+                        {% for occurrence in document.taxon_occurrences.all %}
+                        <a href="#" class="list-group-item">{{ occurrence.taxon.scientific_name }}{% if occurrence.taxon.division %} <span class="label label-primary">{{ occurrence.taxon.division }}</span>{% endif %}</a>
+                        {% endfor %}
+                    </ul>
+                <!-- </div> -->
             </div>
-
         </div>
-    </div>
-    <div class="col-sm-4">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <strong>Cites (within JHB)</strong>
+        {% if document.cites.count > 0 %}
+        <div class="col-sm-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <span class="h3">Cites (within JHB)</span>
+                </div>
+                <!-- <div class="panel-body"> -->
+                    <ul class="list-group">
+                        {% for citation in document.cites.all %}
+                        <a href="{% url "document_detail" citation.id %}" class="list-group-item small-text">{{ citation.title }} ({{ citation.publication_date }})</a>
+                        {% endfor %}
+                    </ul>
+                <!-- </div> -->
             </div>
-            <!-- <div class="panel-body"> -->
-                <ul class="list-group">
-                    {% for citation in document.cites.all %}
-                    <a href="{% url "document_detail" citation.id %}" class="list-group-item small-text">{{ citation.title }} ({{ citation.publication_date }})</a>
-                    {% endfor %}
-                </ul>
-            <!-- </div> -->
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -82,7 +104,9 @@
             .rangeRound([height, 0]);
 
         var color = d3.scale.ordinal()
-            .range(["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"]);
+            .range(["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
+                         "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
+                         "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788"]);
 
         var xAxis = d3.svg.axis()
             .scale(x)
@@ -169,7 +193,8 @@
                       d3.select('#topic-details-heading')
                          .style('background-image', 'linear-gradient(to bottom,#f5f5f5 0,'+ color(data.id) + ' 100%)');
                     d3.select('#topic-details-title')
-                        .text(data.label)
+                        .text(data.label);
+                    d3.select('#topic-details-link')
                         .attr('href', '{% url "topics" %}' + data.id + '/');
 
                       var maxWeight = data.terms[0].weight;

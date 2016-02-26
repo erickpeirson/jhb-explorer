@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+import json
 
 class Document(models.Model):  # Done
     """
@@ -199,12 +200,14 @@ class ExternalResource(models.Model):
     JSTOR = 'JS'
     ISISCB = 'IS'
     VIAF = 'VF'
+    TAXONOMY = 'TX'
     CONCEPTPOWER = 'CP'
     RESOURCE_TYPES = (
         (VIAF, 'Virtual Internet Authority File (VIAF)'),
         (CONCEPTPOWER, 'Conceptpower'),
         (JSTOR, 'JSTOR'),
         (ISISCB, 'IsisCB Explore'),
+        (TAXONOMY, 'NCBI Taxonomy Database'),
     )
     resource_type = models.CharField(max_length=255, choices=RESOURCE_TYPES)
 
@@ -233,6 +236,123 @@ class BibliographicCoupling(models.Model):
     """
     Mean percent overlap of the two bibliographies.
     """
+
+
+class TopicFrequency(models.Model):
+    """
+    Pre-calculated per-page frequency for topics on an annual basis.
+    """
+
+    topic = models.ForeignKey('Topic', related_name='frequencies')
+    frequency = models.FloatField(default=0.0)
+    year = models.PositiveIntegerField(default=1900)
+
+
+class TopicJointFrequency(models.Model):
+    """
+    Pre-calculated per-page joint frequency for pairs of topics on an annual
+    basis.
+    """
+
+    topics = models.ManyToManyField('Topic', related_name='joint_frequencies')
+    frequency = models.FloatField(default=0.0)
+    year = models.PositiveIntegerField(default=1900)
+
+
+class TaxonName(models.Model):
+    name_for = models.ForeignKey('Taxon', related_name='names')
+    name_type = models.CharField(max_length=255)
+    """e.g. Authority"""
+    display_name = models.CharField(max_length=255)
+    """e.g. Western red cedar"""
+
+
+class Taxon(models.Model):
+    scientific_name = models.CharField(max_length=255)
+    rank = models.CharField(max_length=255, blank=True, null=True)
+    division = models.CharField(max_length=255, blank=True, null=True)
+    """
+    e.g. Plants, Animals, Viruses.
+    """
+
+    part_of = models.ForeignKey('Taxon', related_name='contains', null=True)
+
+    lineage = models.TextField(blank=True)
+    def get_lineage(self):
+        try:
+            return [Taxon.objects.get(pk=pk) for pk in json.loads(self.lineage)]
+        except ValueError:
+            return []
+
+    def set_lineage(self, value):
+        if type(value) is not list:
+            raise ValueError('value of lineage must be a list of Taxon IDs')
+        self.lineage = json.dumps(value)
+
+    def children(self):
+        def traverse_down(taxon):
+            result = [taxon]
+            if taxon.contains.count() > 0:
+                return result + traverse_down(taxon.contains.all()[0])
+            return result
+        return traverse_down(self)
+
+    def parents(self):
+        def traverse_up(taxon):
+            result = [taxon]
+            if taxon.part_of:
+                print taxon.id, taxon.part_of.id
+                return result + traverse_up(taxon.part_of)
+            return result
+        return traverse_up(self)
+
+    def neighbors(self, depth=2):
+        def traverse_up(taxon, level):
+            print level
+            result = [taxon]
+            if level < depth:
+                result += traverse_up(taxon.part_of, level + 1)
+            return result
+
+        def traverse_down(taxon, level):
+            as_leaf = {"id": taxon.id, "scientific_name": taxon.scientific_name, "rank": taxon.rank }
+            if level < depth:
+                as_leaf["children"] = [traverse_down(ctaxon, level + 1) for ctaxon in taxon.contains.all()]
+            return as_leaf
+        return [traverse_down(traverse_up(self, 0)[::-1][0], 0)]
+
+
+
+
+
+
+        # return [taxon for taxon in self.part_of.contains.all() if taxon != self]
+
+
+
+
+
+class TaxonDocumentOccurrence(models.Model):
+    taxon = models.ForeignKey('Taxon', related_name='occurrences')
+    document = models.ForeignKey('Document', related_name='taxon_occurrences')
+    weight = models.FloatField(default=1.)
+
+
+class TaxonResourceProvider(models.Model):
+    name = models.CharField(max_length=255)
+    abbreviation = models.CharField(max_length=255)
+    url = models.URLField(max_length=1000)
+
+
+class TaxonExternalResource(models.Model):
+    taxon = models.ForeignKey('Taxon', related_name='resources')
+
+    url = models.URLField(max_length=1000)
+    link_name = models.CharField(max_length=255, null=True, blank=True)
+    subject_type = models.CharField(max_length=255, null=True, blank=True)
+    category = models.CharField(max_length=255)
+    attribute = models.CharField(max_length=255)
+    provider = models.ForeignKey('TaxonResourceProvider', related_name='resources')
 
 
 # class EntityOccurrence(models.Model):

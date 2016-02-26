@@ -4,7 +4,10 @@ from explorer import views
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^$', views.home, name='home'),
     url(r'^topics/$', views.topics, name='topics'),
+    url(r'^organisms/$', views.organisms, name='organisms'),
+    url(r'^organisms/(?P<taxon_id>[0-9]+)/$', views.organism, name='organism_detail'),
     url(r'^topics/(?P<topic_id>[0-9]+)/$', views.topic, name='topic_detail'),
     url(r'^documents/$', views.documents, name='documents'),
     url(r'^documents/(?P<document_id>[0-9]+)/$', views.document, name='document_detail'),

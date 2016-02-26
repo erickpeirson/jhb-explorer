@@ -1,0 +1,337 @@
+{% extends 'explorer/base.html' %}
+
+{% load staticfiles %}
+{% load jhb_tags %}
+
+{% block content %}
+<style>
+.node circle {
+   fill: #fff;
+   stroke: steelblue;
+   stroke-width: 3px;
+ }
+
+ .node text { font: 12px sans-serif; }
+
+ .node {
+    cursor: pointer;
+}
+
+ .link {
+   fill: none;
+   stroke: #ccc;
+   stroke-width: 2px;
+ }
+</style>
+
+<div id="topic-stream-container">
+    <span class="pull-right" style="width: 50px;">
+            <button type="button" class="btn btn-primary btn-xs" aria-label="Info" data-toggle="modal" data-target="#organismModal">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="What am I looking at?"></span>
+            </button>
+
+    </span>
+    <div id="topic-stream">
+    </div>
+    <h1 class="h1 display-1 page-title">{{ taxon|format_taxon_name|safe }}</h1>
+
+</div>
+
+<div class="row" style="margin-top: 220px;">
+    <div class="col-sm-12">
+        <div class="panel">
+            <div id="tree" style="height: 200px;">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="organismModal" tabindex="-1" role="dialog" aria-labelledby="organismModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Named Entity Recognition: Organisms</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Named Entity Recognition is a machine learning technique for detecting references to classes of
+                    concepts, or entities, in texts. NER models typically focus on detecting references to people,
+                    organizations, and places, but can also find things like currency, quantities, and organisms.
+                    NER isn't fool-proof: the quality of the results depend both on the suitability of the NER model
+                    and on the quality of the texts.
+                </p>
+                <p>
+                    The visualizations on this page depict references to organisms that were detected using an NER
+                    model called LINNAEUS. LINNAEUS was trained on abstracts in the PubMed database, and is unusual
+                    among NER models in that it also tries to disambiguate the entities that it finds. In other words,
+                    it identifies not merely <strong>that</strong> a passage refers to an organism, but also <strong>
+                    which specific organism</strong> is being discussed. LINNAEUS' vocabulary of organisms is the NCBI
+                    Taxonomy database, which means that we can retrieve additional information about each organism
+                    discussed in <em>JHB</em> using the NCBI Entrez APIs.
+                </p>
+                <p>
+                    On this page, the organisms that LINNAEUS found are grouped into NCBI Taxonomy's major "divisions".
+                    Note that these divisions are not mutually exclusive: <strong>Rodents</strong> are separated from
+                    <strong>Mammals</strong>, which are in turn are separated from <strong>Vertebrates</strong>. The
+                    stream-graph at the top of the page shows the relative number of documents in which LINNAEUS identified
+                    references to an organism in each division. The donut chart shows the combined totals for the time
+                    period selected in the stream-graph. The table on the right lists the top taxa for the selected
+                    time period and division. Clicking on a taxon name will take you to a page with details about the
+                    taxon, including the articles in which LINNAEUS detected it, and external resources discovered
+                    via the NCBI Entrez APIs.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+var layers,
+    years,
+    m,
+    n=20,
+    stack = d3.layout.stack().offset("wiggle");
+
+    var color = ["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
+                 "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
+                 "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788"];
+var thisColor = color[Math.floor(Math.random() * color.length)];
+
+var redraw = function() {
+    var width = parseInt(d3.select('#topic-stream').style('width'), 10),
+        height = parseInt(d3.select('#topic-stream').style('height'), 10);
+
+    var x = d3.scale.linear()
+        .domain([0, m - 1])
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .domain([0, d3.max(layers, function(layer) { return d3.max(layer, function(d) { return d.y0 + d.y; }); })])
+        .range([height, 0]);
+
+    var area = d3.svg.area()
+        .interpolate("basis")
+        .x(function(d) { return x(d.x); })
+        .y0(function(d) { return y(d.y0); })
+        .y1(function(d) { return y(d.y0 + d.y); });
+
+    var axis = d3.svg.axis()
+        .scale(x)
+        .orient("top")
+        .tickFormat(function(d, i) {
+            return String(years[d]);
+        });
+
+    var svg = d3.select("#topic-stream").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    svg.selectAll("path")
+        .data(layers)
+        .enter().append("path")
+        .attr("d", area)
+        .style("fill", thisColor);
+
+        svg.append("g")
+            .attr("class", "axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(axis)
+                .selectAll('text')  // Rotate and reposition x axis labels.
+                .attr("transform", "rotate(-90)" )
+                    .attr("dx", height/2)
+                    .attr("dy", "1.7em");
+}
+
+function transition() {
+    d3.selectAll("path")
+        .data(function() {
+            var d = layers1;
+            layers1 = layers0;
+            return layers0 = d;
+        })
+        .transition()
+        .duration(2500)
+        .attr("d", area);
+}
+
+function resize() {
+    $("#topic-stream").empty();
+    redraw();
+}
+
+d3.json("/organisms/{{ taxon.id }}/?data=time", function(data) {
+    n = 20; // number of layers
+    m = data.values.length; // number of samples per layer
+
+    var a = [], i;
+    for (i = 0; i < m; ++i) a[i] = 0;
+    var series = a.map(function(d, i) { return {x: i, y: data.values[i]}; });
+    // console.log(data.values);
+    layers = stack([series]);
+    years = data.dates;
+    redraw(layers);
+    d3.select(window).on('resize', resize);
+});
+</script>
+
+
+
+<script>
+
+var orgFormat = function(organism) {
+    orgString = '';
+    if (['species', 'genus', 'subgenus', null].indexOf(organism.rank) > -1 ) {
+        orgString += '<em>' + organism.scientific_name + '</em>';
+    } else {
+        orgString += organism.scientific_name;
+    }
+    if (organism.rank != null) {
+         orgString += ' <span class="label label-default">' + organism.rank + '</span>';
+    }
+    return orgString;
+}
+
+d3.json("?data=neighbors", function(data) {
+    var margin = {top: 20, right: 120, bottom: 20, left: 120},
+        treeWidth = parseInt(d3.select('#tree').style('width'), 10) - margin.right - margin.left,
+        treeHeight = parseInt(d3.select('#tree').style('height'), 10) - margin.top - margin.bottom;
+
+    var i = 0,
+        duration = 750,
+        root;
+
+    var tree = d3.layout.tree()
+        .size([treeHeight, treeWidth]);
+
+    var diagonal = d3.svg.diagonal()
+        .projection(function(d) { return [d.y, d.x]; });
+
+    var svg = d3.select("#tree").append("svg")
+        .attr("width", treeWidth + margin.right + margin.left)
+        .attr("height", treeHeight + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    root = data.data[0];
+
+    function click(d) {
+        if (d.children) {
+            d._children = d.children;
+            d.children = null;
+        } else {
+            d.children = d._children;
+            d._children = null;
+        }
+        update(d);
+    }
+    function collapse(d) {
+        if (d.children) {
+            d._children = d.children;
+            if (data.direct.indexOf(d.id) == -1) {
+                d.children = null;
+            }
+            d._children.forEach(collapse);
+        }
+    }
+    root.children.forEach(collapse);
+        root.x0 = treeHeight / 2;
+      root.y0 = 0;
+    update(root);
+
+    function update(source) {
+
+          // Compute the new tree layout.
+          var nodes = tree.nodes(root).reverse(),
+              links = tree.links(nodes);
+
+          // Normalize for fixed-depth.
+          nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+          // Update the nodes…
+          var node = svg.selectAll("g.node")
+              .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+          // Enter any new nodes at the parent's previous position.
+          var nodeEnter = node.enter().append("g")
+              .attr("class", "node")
+              .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+              .on("click", click);
+
+          nodeEnter.append("circle")
+              .attr("r", 1e-6)
+              .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+          nodeEnter.append("text")
+              .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+              .attr("dy", ".35em")
+              .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+              .text(function(d) { return d.scientific_name; })
+              .style("fill-opacity", 1e-6);
+
+          // Transition nodes to their new position.
+          var nodeUpdate = node.transition()
+              .duration(duration)
+              .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+          nodeUpdate.select("circle")
+              .attr("r", 4.5)
+              .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+          nodeUpdate.select("text")
+              .style("fill-opacity", 1);
+
+          // Transition exiting nodes to the parent's new position.
+          var nodeExit = node.exit().transition()
+              .duration(duration)
+              .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+              .remove();
+
+          nodeExit.select("circle")
+              .attr("r", 1e-6);
+
+          nodeExit.select("text")
+              .style("fill-opacity", 1e-6);
+
+          // Update the links…
+          var link = svg.selectAll("path.link")
+              .data(links, function(d) { return d.target.id; });
+
+          // Enter any new links at the parent's previous position.
+          link.enter().insert("path", "g")
+              .attr("class", "link")
+              .attr("d", function(d) {
+                var o = {x: source.x0, y: source.y0};
+                return diagonal({source: o, target: o});
+              });
+
+          // Transition links to their new position.
+          link.transition()
+              .duration(duration)
+              .attr("d", diagonal);
+
+          // Transition exiting nodes to the parent's new position.
+          link.exit().transition()
+              .duration(duration)
+              .attr("d", function(d) {
+                var o = {x: source.x, y: source.y};
+                return diagonal({source: o, target: o});
+              })
+              .remove();
+
+          // Stash the old positions for transition.
+          nodes.forEach(function(d) {
+            d.x0 = d.x;
+            d.y0 = d.y;
+          });
+        }
+});
+</script>
+{% endblock %}

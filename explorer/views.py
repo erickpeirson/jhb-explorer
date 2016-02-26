@@ -2,19 +2,181 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.template import RequestContext, loader
 from django.http import HttpResponse, HttpResponseRedirect
 from django.db.models import Q
+from django.conf import settings
+from django.db.models import Sum
+from django.db.models import Count
+from django.contrib.staticfiles.templatetags.staticfiles import static
 
 from rest_framework.renderers import JSONRenderer
 from django.core.cache import caches
 
-from collections import Counter
+from collections import Counter, defaultdict
+from itertools import combinations
+from math import log, floor
 
 cache = caches['default']
 
 import json
 import igraph
+import os
 
 from explorer.serializers import TopicSerializer
 from explorer.models import *
+
+
+def npmi(f_xy, f_x, f_y):
+    pmi = log(f_xy/(f_x * f_y))
+    try:
+        npmi = pmi/(-1. * log(f_xy))
+    except ZeroDivisionError:
+        npmi = 0.
+
+
+def home(request):
+    """
+    Provides the root view of the application.
+    """
+
+    template = loader.get_template('explorer/home.html')
+    context = RequestContext(request, {})
+    response_data = template.render(context)
+    content_type = "text/html"
+    return HttpResponse(response_data, content_type=content_type)
+
+def organism(request, taxon_id):
+    """
+    Displays the detail view for a single taxon.
+    """
+    data = request.GET.get('data', None)
+    start = request.GET.get('start', 1968)
+    end = request.GET.get('end', 2013)
+    taxon = get_object_or_404(Taxon, pk=taxon_id)
+
+    if data == 'time':
+        queryset = TaxonDocumentOccurrence.objects.filter(
+            taxon=taxon_id,
+            document__publication_date__gte=start,
+            document__publication_date__lte=end).values('document__publication_date')
+
+        by_date = Counter([v['document__publication_date'] for v in queryset])
+
+        # Fill in years with no occurrences.
+        for i in xrange(start, end + 1):
+            by_date[i] += 0.
+
+        response_data = json.dumps({'taxon': taxon_id, 'dates': by_date.keys(), 'values': by_date.values()})
+        content_type = "application/json"
+
+    elif data == 'neighbors':
+        depth = request.GET.get('depth', 3)
+        response_data = json.dumps({
+            'focal': taxon_id,
+            'direct': [t.id for t in taxon.parents()],
+            'data': taxon.neighbors(depth=depth)
+        })
+        content_type = "application/json"
+
+    else:
+
+        template = loader.get_template('explorer/organism.html')
+        context = RequestContext(request, {
+            'taxon': taxon,
+            'active': 'organisms',
+        })
+        response_data = template.render(context)
+        content_type = "text/html"
+    return HttpResponse(response_data, content_type=content_type)
+
+
+def organisms(request):
+    """
+    Displays the root view of the taxon browser.
+    """
+
+    data = request.GET.get('data', None)
+    start = request.GET.get('start', 1968)
+    end = request.GET.get('end', 2013)
+    division = request.GET.get('division', None)
+
+    if data == 'time':
+        division_series = []
+        for value in Taxon.objects.all().values('division').distinct():
+            if value['division'] is None:
+                continue
+            queryset = TaxonDocumentOccurrence.objects.filter(taxon__division=value['division']).values('document__publication_date')
+            by_date = Counter([v['document__publication_date'] for v in queryset])
+            for i in xrange(start, end + 1):
+                by_date[i] += 0
+            division_series.append((value['division'], by_date))
+
+        response_data = json.dumps({'divisions': [{'division': division, 'dates': counts.keys(), 'values': counts.values()} for division, counts in division_series]})
+        content_type = "application/json"
+
+    elif data == 'json':
+        queryset = Taxon.objects.filter(occurrences__document__publication_date__gte=start, occurrences__document__publication_date__lte=end)
+        if division and division != 'null' and division != 'undefined':
+            print division
+            queryset = queryset.filter(division=division);
+        queryset = queryset.annotate(num_occurrences=Count('occurrences')).order_by('-num_occurrences')[:20]
+
+        response_data = json.dumps({
+            'data': [{
+                'id': obj.id,
+                'scientific_name': obj.scientific_name,
+                'occurrences': obj.num_occurrences,
+                'rank': obj.rank,
+            } for obj in queryset]
+        })
+        content_type = "application/json"
+
+    else:
+
+        template = loader.get_template('explorer/organisms.html')
+        context = RequestContext(request, {
+            'divisions': Taxon.objects.all().values('division').distinct(),
+            'active': 'organisms',
+        })
+        response_data = template.render(context)
+        content_type = "text/html"
+    return HttpResponse(response_data, content_type=content_type)
+
+
+def topic_colocates(startYear=None, endYear=None, criterion=0.1):
+    queryset = Document.objects.all()
+    if startYear:
+        queryset = queryset.filter(publication_date__gte=startYear)
+    if endYear:
+        queryset = queryset.filter(publication_date__lte=endYear)
+
+    N = queryset.count()
+    colocate_counts = Counter()
+    colocate_documents = defaultdict(list)
+    occurrence_counts = Counter()
+    for document in queryset:
+        for assignmentA, assignmentB in combinations(document.contains_topic.all(), 2):
+            pair = tuple(sorted([assignmentA.topic.id, assignmentB.topic.id]))
+            colocate_counts[pair] += 1.
+            colocate_documents[pair].append(document.id)
+        for assignment in document.contains_topic.all():
+            occurrence_counts[assignment.topic.id] += 1.
+
+    nPMI = {}
+    colocate_documents_select = {}
+    for pair, cocount in colocate_counts.iteritems():
+        f_xy = cocount/N
+        f_x = occurrence_counts[pair[0]]/N
+        f_y = occurrence_counts[pair[1]]/N
+
+        pmi = log(f_xy/(f_x * f_y))
+        try:
+            npmi = pmi/(-1. * log(f_xy))
+        except ZeroDivisionError:
+            npmi = 0.
+
+        if npmi >= criterion:
+            nPMI[pair] = npmi
+            colocate_documents_select[pair] = colocate_documents[pair]
+    return nPMI, colocate_documents_select
 
 
 def topics_json(request):
@@ -29,19 +191,30 @@ def topics_json(request):
     return HttpResponse(response_data, content_type="application/json")
 
 
-def topic_time(request, topic_id):
+def topic_time(request, topic_id, start=None, end=None, normed=True):
     """
     Genereate a JSON response containing time-series data for a single topic.
     """
 
-    queryset = TopicDocumentAssignment.objects.filter(topic_id=topic_id).order_by('document__publication_date')
-    by_date = Counter()
-    for assignment in queryset:
-        pubdate = assignment.document.publication_date
-        by_date[pubdate] += assignment.weight
+    queryset = TopicFrequency.objects.filter(topic_id=topic_id).order_by('year')
 
-    response_data = json.dumps({'dates': by_date.keys(), 'values': by_date.values()})
-    return HttpResponse(response_data, content_type='application/json')
+    if start:
+        queryset = queryset.filter(year__gte=start)
+    if end:
+        queryset = queryset.filter(year__lt=end)
+
+    by_date = Counter({instance.year: instance.frequency for instance in queryset})
+
+    if start is not None:
+        for year in xrange(start, max(by_date.keys())):
+            by_date[year] += 0.
+    if end is not None:
+        for year in xrange(min(by_date.keys()), end + 1):
+            by_date[year] += 0.
+
+    values = by_date.values()
+
+    return {'dates': by_date.keys(), 'values': values, 'topic': topic_id}
 
 
 def topics_time(request):
@@ -50,6 +223,12 @@ def topics_time(request):
     topics over time.
     """
 
+    response_data =  cache.get('topics_time')
+    if response_data is None:
+        queryset = Topic.objects.all()
+        data = [topic_time(request, topic.id, start=1968, end=2013) for topic in queryset]
+        response_data = json.dumps({'topics': data})
+        cache.set('topics_time', response_data, 36000)
 
     return HttpResponse(response_data, content_type='application/json')
 
@@ -59,90 +238,13 @@ def topics_graph(request):
     Generates a JSON response containing data for the topic co-location
     network visualization.
     """
-    queryset = Topic.objects.all()
-    response_data = cache.get('topic_graph')
-    if response_data is None:
-        graph = igraph.Graph()
+    # queryset = Topic.objects.all()
+    startYear = int(floor(float(request.GET.get('startyear', 1968))))
+    endYear = int(floor(float(request.GET.get('endyear', 2013))))
 
-        elements = []
-        nodes = []
-        minsize = 5000
-        maxsize = 0
-        for topic in queryset:
-            terms = [term for term in topic.assigned_to.order_by('-weight')[:20]]
-            max_weight = max([term.weight for term in terms])
-            min_weight = min([term.weight for term in terms])
-
-            documents = [doc for doc in topic.in_documents.order_by('-weight')[:5]]
-            graph.add_vertex(topic.id)
-            nodes.append({
-                'data': {
-                    'id': str(topic.id),
-                    'size': topic.in_documents.count(),
-                    'terms': [
-                        {
-                            'id': assignment.id,
-                            'term': assignment.term.term,
-                            'weight': 8 + 10*(assignment.weight - min_weight)/(max_weight - min_weight)
-                        }
-                        for assignment in terms
-                    ],
-                    'documents': [
-                        {
-                            'id': occurrence.document.id,
-                            'title': occurrence.document.title,
-                            'pubdate': occurrence.document.publication_date,
-                            'weight': occurrence.weight,
-                        }
-                        for occurrence in documents
-                    ],
-                }
-            })
-
-        edges = {}
-        for colocate in TopicCoLocation.objects.all():
-            # if colocate.weight < 0.14:
-            #     continue
-            pair = tuple(sorted([colocate.source.id, colocate.target.id]))
-            if pair not in edges:
-                documents = set([page.belongs_to for page in colocate.pages.all()[:10]])
-
-                edges[pair] = {
-                    'data': {
-                        'id': 'colocate_' + str(colocate.id),
-                        'source': str(colocate.source.id),
-                        'target': str(colocate.target.id),
-                        'weight': colocate.weight,
-                        'documents': [
-                            {
-                                'id': doc.id,
-                                'title': doc.title,
-                                'pubdate': doc.publication_date
-                            }
-                            for doc in documents
-                        ]
-                    }
-                }
-
-
-
-        graph.add_edges(edges.keys())
-        layout = graph.layout_fruchterman_reingold()
-        bbox = igraph.BoundingBox(900.,900.)
-        layout.fit_into(bbox)
-        for node in nodes:
-            x, y = tuple(layout[int(node['data']['id'])])
-            node['data']['pos'] = {
-                'x': x,
-                'y': y,
-            }
-            elements.append(node)
-        elements += edges.values()
-
-        response_data = json.dumps(elements, indent=4)
-        cache.set('topic_graph', response_data, 36000)
-    content_type = "application/json"
-    return HttpResponse(response_data, content_type=content_type)
+    fname = 'topic_graph_%i_%i.json' % (startYear, endYear)
+    fpath = '/'.join(['explorer', 'data', fname])
+    return HttpResponseRedirect(static(fpath))
 
 
 def topics(request):
@@ -156,6 +258,8 @@ def topics(request):
         return topics_json(request)
     elif data == 'graph':
         return topics_graph(request)
+    elif data == 'time':
+        return topics_time(request)
     else:
         queryset = Topic.objects.all()
         template = loader.get_template('explorer/topics.html')
@@ -176,18 +280,40 @@ def topic(request, topic_id):
     topic = get_object_or_404(Topic, pk=topic_id)
     data = request.GET.get('data', None)
 
+    # These are used to bound the representative documents for this topic. In
+    #  the future, this could also apply to terms if a DTM is used. Start and
+    #  end follow the usual inclusive/exclusive Python range behavior,
+    #  respectively.
+    start_year = request.GET.get('start', None)
+    end_year = request.GET.get('end', None)
+
+    document_queryset = topic.in_documents.order_by('-weight')
+    if start_year:
+        document_queryset = document_queryset.filter(document__publication_date__gte=start_year)
+    if end_year:
+        document_queryset = document_queryset.filter(document__publication_date__lt=end_year)
+    document_queryset = document_queryset.select_related('document')
+
+    term_queryset = topic.assigned_to.order_by('-weight')
+
     if data == 'json':
         data = {
             'id': topic.id,
             'label': topic.__unicode__(),
+            'document_count': document_queryset.count(),
             'terms': [{
                 'term': assignment.term.term,
                 'weight': assignment.weight,
-                } for assignment in topic.assigned_to.order_by('-weight')[:20]],
+                } for assignment in term_queryset[:20]],
+            'documents': [{
+                'id': assignment.document.id,
+                'title': assignment.document.title,
+                'pubdate': assignment.document.publication_date
+            } for assignment in document_queryset]
         }
         return HttpResponse(json.dumps(data), content_type='application/json')
     elif data == 'time':
-        return topic_time(request, topic_id)
+        return HttpResponse(json.dumps(topic_time(request, topic_id)), content_type='application/json')
     else:   # Render HTML view.
         template = loader.get_template('explorer/topic.html')
 
@@ -200,8 +326,8 @@ def topic(request, topic_id):
             'topic': topic,
             'associated_topics': topic.associated_with.all(),
             'topic_colocates': topic_colocates,
-            'in_documents': topic.in_documents.filter(weight__gte=10).order_by('-weight'),
-            'assigned_to': topic.assigned_to.order_by('-weight')[:20],
+            'in_documents': document_queryset,
+            'assigned_to': term_queryset[:20],
             'active': 'topics',
         })
         return HttpResponse(template.render(context))

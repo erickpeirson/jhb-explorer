@@ -12,11 +12,21 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
 
         <!-- Latest compiled and minified JavaScript -->
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+        <script src="{% static "explorer/js/bootstrap.min.js" %}" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
 
+        <link rel="stylesheet" href="{% static "explorer/css/colors.css" %}" />
         <link rel="stylesheet" href="{% static "explorer/css/main.css" %}" />
+        <link rel="stylesheet" href=" {% static "explorer/css/font-awesome.min.css" %}" />
+
         <script type="text/javascript" src="{% static "explorer/js/d3/d3.min.js" %}"  charset="utf-8"></script>
-        
+        <script> // Initialize tooltips.
+
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+        </script>
+
+
         <!-- <script type="text/javascript" src="{% static "explorer/js/d3/d3.geom.js" %}"></script>
         <script type="text/javascript" src="{% static "explorer/js/d3/d3.layout.js" %}"></script> -->
     {% block extrahead %}
@@ -24,13 +34,15 @@
     </head>
 
     <body>
-        <div class="container">
+        <!-- <div class="container"> -->
         {% include "explorer/header.html" %}
-        </div>
-        <div class="container">
+        <!-- </div> -->
+        <div class="container-fluid" style="margin-bottom: 50px;"> <!-- Makes room for the static footer. -->
         {% block content %}
         {% endblock %}
         </div>
+
+        {% include "explorer/footer.html" %}
     </body>
 
 </html>

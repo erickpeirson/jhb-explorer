@@ -1,4 +1,4 @@
-<nav class="navbar navbar-default">
+<nav class="navbar navbar-default navbar-static-top navbar-inverse">
     <div class="container-fluid">
         <div class="navbar-header">
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -13,7 +13,7 @@
             <ul class="nav navbar-nav">
                 <li{% if active == 'home' or not active %} class="active"{% endif %}><a href="/">Home</a></li>
                 <li{% if active == 'topics' %} class="active"{% endif %}><a href="{% url "topics" %}">Topics</a></li>
-                <li><a href="#">Entities</a></li>
+                <li{% if active == 'organisms' %} class="active"{% endif %}><a href="{% url "organisms" %}">Organisms</a></li>
                 <li><a href="#">Citations</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
