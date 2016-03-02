@@ -293,7 +293,8 @@ class Taxon(models.Model):
         def traverse_down(taxon):
             result = [taxon]
             if taxon.contains.count() > 0:
-                return result + traverse_down(taxon.contains.all()[0])
+                for tax in taxon.contains.all():
+                    result += traverse_down(tax)
             return result
         return traverse_down(self)
 
@@ -306,29 +307,28 @@ class Taxon(models.Model):
             return result
         return traverse_up(self)
 
-    def neighbors(self, depth=2):
+    def tree(self, depth_up=2, depth_down=None):
         def traverse_up(taxon, level):
-            print level
             result = [taxon]
-            if level < depth:
+            if taxon.contains.count() < 2:
+                level -= 1
+            if level < depth_up:
                 result += traverse_up(taxon.part_of, level + 1)
             return result
 
         def traverse_down(taxon, level):
-            as_leaf = {"id": taxon.id, "scientific_name": taxon.scientific_name, "rank": taxon.rank }
-            if level < depth:
-                as_leaf["children"] = [traverse_down(ctaxon, level + 1) for ctaxon in taxon.contains.all()]
+            as_leaf = {"id": taxon.id, "scientific_name": taxon.scientific_name, "rank": taxon.rank, "count": taxon.occurrences.count() }
+            if level < depth_down or depth_down is None:
+                results = [traverse_down(ctaxon, level + 1) for ctaxon in taxon.contains.all()]
+                if len(results) == 1:
+                    as_leaf = results[0]
+                elif len(results) > 0:
+                    as_leaf["children"] = results
+            # if taxon == self and level < depth + 2:
+            #
+            #     as_leaf["children"] = [traverse_down(ctaxon, level - 2) for ctaxon in taxon.contains.all()]
             return as_leaf
         return [traverse_down(traverse_up(self, 0)[::-1][0], 0)]
-
-
-
-
-
-
-        # return [taxon for taxon in self.part_of.contains.all() if taxon != self]
-
-
 
 
 

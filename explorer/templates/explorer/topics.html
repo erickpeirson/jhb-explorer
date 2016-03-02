@@ -4,6 +4,7 @@
 
 
 {% block extrahead %}
+
 <script src="{% static 'explorer/js/spin.min.js' %}"></script>
 <script src="{% static 'explorer/js/jquery.spin.js' %}"></script>
 <script src="{% static 'explorer/js/cytoscape.min.js' %}"></script>
@@ -46,6 +47,60 @@ $(document)
 
 var startYear = 1975;
 var endYear = 1990;
+var selectedTopic = [];
+var cy;
+var svg,
+    brush,
+    muteLeft,
+    muteRight,
+    brushg;
+
+var magnifyStream = function(streamData) {
+    return [{
+        t: streamData[0].t,
+        layer: streamData[0].layer.map(function(pos) {
+            return {
+                x: pos.x,
+                y: pos.y * 10.,
+                y0: pos.y0 / 3.
+            };
+        })
+    }];
+}
+
+var unMagnifyStream = function(streamData) {
+    return [{
+        t: streamData[0].t,
+        layer: streamData[0].layer.map(function(pos) {
+            return {
+                x: pos.x,
+                y: pos.y / 10.,
+                y0: pos.y0 * 3.
+            };
+        })
+    }];
+}
+
+var selectNode = function(node) {
+    node.select();
+
+    var directlyConnected = node.neighborhood();
+    var nonConnected = cy.elements().difference( directlyConnected );
+
+    directlyConnected.nodes().addClass('connectedNodes');
+    nonConnected.nodes().addClass('nonConnectedNodes');
+    node.removeClass('nonConnectedNodes');
+
+    node.neighborhood('edge').edges().addClass('connectedEdge');
+
+    cy.animate({
+        center: {
+            eles: node,
+        }
+    }, {
+        duration: 750,
+    });
+}
 
 // When the page is loaded, request the topic colocation network.
 $('body').ready(function() {
@@ -54,11 +109,33 @@ $('body').ready(function() {
             success: function(elements) {
                 // When the data is returned, generate an interative visualization
                 //  using Cytoscape.js.
-                var cy = cytoscape({
+                var minEdgeWeight = 1.0;
+                var maxEdgeWeight = 0.0;
+                var minNodeWeight = 1.0;
+                var maxNodeWeight = 0.0;
+
+                elements.forEach(function(elem) {
+                    var weight = Number(elem.data.weight);
+                    if (elem.data.source) {  // Edge.
+                        if (weight > maxEdgeWeight) maxEdgeWeight = weight;
+                        if (weight < minEdgeWeight) minEdgeWeight = weight;
+                    } else {
+                        if (weight > maxNodeWeight) maxNodeWeight = weight;
+                        if (weight < minNodeWeight) minNodeWeight = weight;
+                    }
+                });
+
+                minNodeWeight = Number(minNodeWeight.toPrecision(4));
+                maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
+                minEdgeWeight = Number(minEdgeWeight.toPrecision(4));
+                maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
+
+                cy = cytoscape({
                     container: $('#cyTopics'),
                     elements: elements,
                     minZoom: 0.5,
                     maxZoom: 3,
+                    panningEnabled: true,
                     style: [    // The stylesheet for the graph.
                         {
                             // Node size is a function of topic prevalence.
@@ -66,17 +143,20 @@ $('body').ready(function() {
                             style: {
                                 'background-color': '#B74934',
                                 'label': 'data(id)',
-                                'width': 'mapData(weight, 0.0, 0.1, 20, 35)',
-                                'height': 'mapData(weight, 0.0, 0.1, 20, 35)',
-                                'font-size': 'mapData(weight, 0.0, 0.1, 8, 36)'
+                                'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
+                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 36)'
                             }
                         },
                         {
                             selector: 'node.connectedNodes',
                             style: {
-                                opacity: 1.0,
+                                'opacity': 1.0,
                                 'border-color': '#AA9A66',
                                 'border-width': 2,
+                                'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
+                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 18, 52)'
                             }
                         },
                         {
@@ -92,27 +172,28 @@ $('body').ready(function() {
                             style: {
                                 'border-color': '#AA9A66',
                                 'border-width': 4,
-                                'width': 'mapData(weight, 0.0, 0.1, 30, 60)',
-                                'height': 'mapData(weight, 0.0, 0.1, 30, 60)',
+                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 35, 75)',
+                                'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
+                                'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
                             }
                         },
                         {
                             // Active nodes should be slightly larger.
                             selector: 'node:active',
                             style: {
-                                'width': 'mapData(weight, 0.0, 0.5, 30, 60)',
-                                'height': 'mapData(weight, 0.0, 0.5, 30, 60)',
+                                'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
+                                'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
                             }
                         },
                         {
                             // Edge weight is a function of nPMI.
                             selector: 'edge',
                             style: {
-                                'width': 'mapData(weight, 0.1, 0.5, 0.5, 6)',
-                                'opacity': 'mapData(weight, 0.1, 0.5, 0.1, 1)',
+                                'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 0.5, 6)',
+                                'opacity': 'mapData(weight, 0.01, 0.5, 0.1, 1)',
                                 'line-color': '#67655D',
                                 'target-arrow-color': '#ccc',
-                            }
+                            },
                         },
                         {
                             selector: 'edge.connectedEdge',
@@ -120,37 +201,56 @@ $('body').ready(function() {
                                 'opacity': 1,
                                 'line-color': '#AA9A66',
                                 'z-index': 500,
-                                'width': 'mapData(weight, 0.1, 0.5, 1, 12)',
+                                'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 1, 12)',
                             }
                         },
                         {
-                            // A selected edge should be slightly thicker, and be
-                            //  colored a brighter color.
+                            // A selected edge should be slightly thicker, and be colored a brighter color.
                             selector: 'edge:selected',
                             style: {
-                                'width': 'mapData(weight, 0.1, 0.5, 2, 8)',
+                                'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 2, 8)',
                                 'opacity': 1,
                                 'line-color': '#AA9A66',
                             }
                         },
                     ],
 
-                    // The CoSE layout is a force-directed layout.
+                    // Pre-calculated joint force layout.
                     layout: {
                         name: 'preset',
                         positions: function(d) {
-                            return d._private.data.pos;
+                            pos = d._private.data.pos;
+                            // Scale. TODO: should we just change the boundingBox?
+                            return {x: (pos.x + 0.5) * 1800, y:(pos.y + 0.5) * 1800};
                         },
-                        // nodeOverlap: 20,
-                        // idealEdgeLength: function( edge ){ return  2./(edge.weight); },
-                        // edgeElasticity: function( edge ){ return 1000; },
                         boundingBox:  { x1: 0, y1: 0, w: 900, h: 900},
-                        // gravity: 50,
-                        // numIter: 5000,
                     }
                 });
 
-                var clearSelectedTopics = function() {
+
+
+                var displayTopicDetails = function(node) {
+                    var nodeData = node.data();
+                    $('.topic-details').css('visibility', 'visible');
+                    $('#topic-details-documents-heading').text('Articles about ' + nodeData.label + ' ('+ startYear +'\u2013'+ endYear +')');
+                    $('#topic-details-heading-1')
+                        .text('Topic ' + nodeData.id);
+
+                    nodeData.terms.forEach(function(term) {
+                        $('#topic-details-terms-1-list')
+                            .append('<li class="topic-details-term" style="font-size: '+ term.weight*1.5 +';">' + term.term + '</li>');
+                    });
+                    $('#topic-details-1-link').attr('href', '/topics/' + nodeData.id + '/');
+                    $('#topic-details-1-link').css('visibility', 'visible');
+
+                    nodeData.documents.forEach(function(doc) {
+                        $('#topic-details-documents')
+                            .append('<a class="topic-details-document list-group-item" href="/documents/'+ doc.id +'/?topic='+ nodeData.id +'"><span class="label label-primary">' + doc.pubdate + '</span> '+ doc.title +'</a>');
+                    });
+                }
+
+
+                var clearTopicDetails = function() {
                     $('.topic-details').css('visibility', 'hidden');
                     $('#topic-details-terms-2-list').empty();
                     $('#topic-details-heading-2').empty();
@@ -165,11 +265,10 @@ $('body').ready(function() {
                     $('#topic-details-documents').empty();
 
                     $('#topic-details-documents-heading').empty();
+                }
 
-                    d3.selectAll('.stream')
-                        .classed('stream-muted', false);
-                    d3.selectAll('.stream-highlighted')
-                        .classed('stream-highlighted', false);
+                var clearSelectedTopics = function() {
+                    clearTopicDetails();
 
                     cy.elements('edge').edges().removeClass('connectedEdge');
                     cy.elements('edge').edges().removeClass('nonConnected');
@@ -177,92 +276,46 @@ $('body').ready(function() {
                     cy.elements('node').nodes().removeClass('connectedNodes');
                     cy.elements('node').nodes().removeClass('nonConnectedNodes');
                     cy.elements('node').nodes().unselect();
+
+                    clearSelectedStreams();
+                }
+
+                var clearSelectedStreams = function() {
+                    d3.selectAll('.stream')
+                        .classed('stream-muted', false);
+                    d3.selectAll('.stream-highlighted')
+                        .classed('stream-highlighted', false);
+
+                    selectedTopic.forEach(function(topic) {
+                        var streamElem = d3.select('#topic-stream-area-' + topic);
+                        redrawStream(streamElem, unMagnifyStream(streamElem.data()));
+                    });
+                    selectedTopic = [];
+
+                    d3.selectAll('.stream').style('opacity', 1.0);
                 }
 
                 // When a node is clicked, information about the corresponding topic
                 //  is displayed in a neighboring panel.
                 cy.on( 'click', 'node', function(event) {
                     clearSelectedTopics();
+                    clearTopicDetails();
 
                     var node = event.cyTarget;  // The node that was clicked.
-                    $('.topic-details').css('visibility', 'visible');
-                    $('#topic-details-documents-heading').text('Occurs in...');
-                    $('#topic-details-heading-1')
-                        .text('Topic ' + node._private.data.id);
+                    selectedTopic.push(node._private.data.id);
+                    displayTopicDetails(node);
 
-                    node._private.data.terms.forEach(function(term) {
-                        $('#topic-details-terms-1-list')
-                            .append('<li class="topic-details-term" style="font-size: '+ term.weight*1.5 +';">' + term.term + '</li>');
-                    });
-                    $('#topic-details-1-link').attr('href', '/topics/' + node._private.data.id + '/');
-                    $('#topic-details-1-link').css('visibility', 'visible');
+                    d3.selectAll('.stream').style('opacity', 0.1);
 
-                    node._private.data.documents.forEach(function(doc) {
-                        $('#topic-details-documents')
-                            .append('<li class="topic-details-document"><a href="/documents/'+ doc.id +'/">(' + doc.pubdate + ') '+ doc.title +'</a></li>');
-                    });
+                    var streamElem = d3.select('#topic-stream-area-' + node._private.data.id);
+                    streamElem.style('opacity', 1.0);
+                    redrawStream(streamElem, magnifyStream(streamElem.data()));
 
+                    selectNode(node);
 
-                    d3.selectAll('.stream')
-                        .classed('stream-muted', true);
-
-                    d3.select('#topic-stream-area-' + node._private.data.id)
-                        .classed('stream-muted', false)
-                        .classed('stream-highlighted', true);
-
-                    var directlyConnected = node.neighborhood();
-                    var nonConnected = cy.elements().difference( directlyConnected );
-
-                    directlyConnected.nodes().addClass('connectedNodes');
-                    nonConnected.nodes().addClass('nonConnectedNodes');
-                    node.removeClass('nonConnectedNodes');
-
-                    node.neighborhood('edge').edges().addClass('connectedEdge');
 
                 });
-
-                cy.on('click', 'edge', function(event) {
-                    clearSelectedTopics();
-
-                    var edge = event.cyTarget;  // The edge that was clicked.
-                    $('.topic-details').css('visibility', 'visible');
-                    $('.topic-details-2').css('visibility', 'visible');
-
-                    $('#topic-details-heading-1').text('Topic ' + edge._private.source._private.data.id);
-                    $('#topic-details-heading-2').text('Topic ' + edge._private.target._private.data.id);
-                    $('#topic-details-documents-heading').text('Occur together in...');
-
-
-                    edge._private.source._private.data.terms.forEach(function(term) {
-                        $('#topic-details-terms-1-list').append('<li class="topic-details-term" style="font-size: '+ term.weight*1.5 +';">' + term.term + '</li>');
-                    });
-
-                    edge._private.target._private.data.terms.forEach(function(term) {
-                        $('#topic-details-terms-2-list').append('<li class="topic-details-term" style="font-size: '+ term.weight*1.5 +';">' + term.term + '</li>');
-                    });
-
-                    edge._private.data.documents.forEach(function(doc) {
-                        $('#topic-details-documents').append('<li class="topic-details-document"><a href="/documents/'+ doc.id +'/">(' + doc.pubdate + ') '+ doc.title +'</a></li>');
-                    });
-                    $('#topic-details-1-link').css('visibility', 'hidden');
-
-                    cy.elements('edge').edges().addClass('nonConnected');
-                    cy.elements('node').nodes().addClass('nonConnectedNodes');
-                    edge._private.source.addClass('connectedNodes');
-                    edge._private.source.removeClass('nonConnectedNodes');
-                    edge._private.target.addClass('connectedNodes');
-                    edge._private.target.removeClass('nonConnectedNodes');
-
-                    d3.selectAll('.stream')
-                        .classed('stream-muted', true);
-
-                    d3.select('#topic-stream-area-' + edge._private.target._private.data.id)
-                        .classed('stream-muted', false)
-                        .classed('stream-highlighted', true);
-                    d3.select('#topic-stream-area-' + edge._private.source._private.data.id)
-                        .classed('stream-muted', false)
-                        .classed('stream-highlighted', true);
-                });
+                cy.edges().unselectify();
 
                 // When the esc key is pressed, clear all selections.
                 $(document).keyup(function(e) {
@@ -271,9 +324,20 @@ $('body').ready(function() {
                     }
                 });
 
+                // Reselect node.
+                selectedTopic.forEach(function(topic) {
+                    selectNode(cy.$('#' + topic));
+                });
+                clearTopicDetails();
+                if (selectedTopic.length == 1) {
+                    console.log(selectedTopic[0]);
+                    displayTopicDetails(cy.$('#' + selectedTopic[0]));
+                }
+
             }
         });
     }
+
     buildGraph(startYear, endYear);
     $(function () {
         $('[data-toggle="tooltip"]').tooltip()
@@ -291,7 +355,36 @@ $('body').ready(function() {
                      "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788"];
     var thisColor = color[Math.floor(Math.random() * color.length)];
 
-    var redraw = function() {
+    /**
+      * Update a single stream with new data.
+      */
+    var redrawStream = function(streamElem, streamData) {
+        var width = parseInt(d3.select('#topic-stream').style('width'), 10),
+            height = parseInt(d3.select('#topic-stream').style('height'), 10);
+
+        var x = d3.scale.linear()
+            .domain([0, m - 1])
+            .range([0, width]);
+
+        var y = d3.scale.linear()
+            .domain([0, d3.max(layers, function(layer) {return d3.max(layer.layer, function(d) { return d.y0 + d.y; }); })])
+            .range([height, 0]);
+
+        var area = d3.svg.area()
+            .interpolate("cardinal")
+            .x(function(d) { return x(d.x); })
+            .y0(function(d) { return y(d.y0); })
+            .y1(function(d) { return y(d.y0 + d.y); });
+
+        streamElem.data(streamData)
+            .transition()
+            .duration(750)
+            .attr("d", function(d) {
+                return area(d.layer);
+            });
+    }
+
+    var redraw = function () {
         var width = parseInt(d3.select('#topic-stream').style('width'), 10),
             height = parseInt(d3.select('#topic-stream').style('height'), 10);
 
@@ -316,7 +409,115 @@ $('body').ready(function() {
                 return String(years[d]);
             });
 
-        var svg = d3.select("#topic-stream").append("svg")
+
+        // Update overall dimensions.
+        svg.attr("height", height)
+            .attr("width", width);
+
+        // Update stream paths.
+        svg.selectAll("path")
+            .data(layers)
+            .attr("d", function(d) {
+                return area(d.layer);
+            });
+
+        // Renew magnification of selected stream(s).
+        selectedTopic.forEach(function(topic) {
+            var selectedElem = d3.select('#topic-stream-area-' + topic);
+            selectedElem.data(magnifyStream(selectedElem.data()))
+                .attr("d", function(d) {
+                    return area(d.layer);
+                });
+        });
+
+        // Resize brush domain.
+        function brushstart() {
+          svg.classed("selecting", true);
+        }
+
+        function brushmove() {
+          var s = brush.extent();
+          brushPos = s;
+
+          muteLeft.attr('width', x(s[0]));
+          muteRight.attr('x', x(s[1]));
+          muteRight.attr('width', width - x(s[1]));
+        }
+
+        function brushend() {
+            var s = brush.extent();
+            s = [Math.round(s[0]), Math.round(s[1])];
+            d3.select(this).transition()
+                .call(brush.extent(s));
+
+            muteLeft.transition()
+                .attr("width", x(s[0]));
+            muteRight.transition()
+                .attr('x', x(s[1]))
+                .attr('width', width - x(s[1]));
+            startYear = 1968 + s[0];
+            endYear = 1968 + s[1];
+            buildGraph(startYear, endYear);
+            svg.classed("selecting", !d3.event.target.empty());
+        }
+
+        brush.x(x)
+            .extent(brushPos)
+            .on("brushstart", brushstart)
+            .on("brush", brushmove)
+            .on("brushend", brushend);
+
+            var s = brush.extent();
+            brushPos = s;
+
+            muteLeft.attr('width', x(s[0]));
+            muteRight.attr('x', x(s[1]));
+            muteRight.attr('width', width - x(s[1]));
+
+            brushg.call(brush);
+
+
+        // Resize the X axis.
+        d3.select('.axis')
+            .attr("transform", "translate(0," + height + ")")
+            .call(axis)
+            .selectAll('text')  // Rotate and reposition x axis labels.
+            .attr("transform", "rotate(-90)" )
+                .attr("dx", height/2)
+                .attr("dy", "1.7em");
+
+        // Reselect node.
+        selectedTopic.forEach(function(topic) {
+            cy.$('#' + topic).select();
+        });
+    }
+
+    var draw = function() {
+        var width = parseInt(d3.select('#topic-stream').style('width'), 10),
+            height = parseInt(d3.select('#topic-stream').style('height'), 10);
+
+        var x = d3.scale.linear()
+            .domain([0, m - 1])
+            .range([0, width]);
+
+        var y = d3.scale.linear()
+            .domain([0, d3.max(layers, function(layer) {return d3.max(layer.layer, function(d) { return d.y0 + d.y; }); })])
+            .range([height, 0]);
+
+        var area = d3.svg.area()
+            .interpolate("cardinal")
+            .x(function(d) { return x(d.x); })
+            .y0(function(d) { return y(d.y0); })
+            .y1(function(d) { return y(d.y0 + d.y); });
+
+        var axis = d3.svg.axis()
+            .scale(x)
+            .orient("top")
+            .tickFormat(function(d, i) {
+                return String(years[d]);
+            });
+
+        svg = d3.select("#topic-stream").append("svg")
             .attr("width", width)
             .attr("height", height);
 
@@ -335,8 +536,6 @@ $('body').ready(function() {
                 return 'topic-stream-area-' + String(d.t);
             });
 
-
-
         svg.append("g")
             .attr("class", "axis")
             .attr("transform", "translate(0," + height + ")")
@@ -347,14 +546,14 @@ $('body').ready(function() {
                     .attr("dy", "1.7em");
 
 
-        var brush = d3.svg.brush()
+        brush = d3.svg.brush()
             .x(x)
             .extent(brushPos)
             .on("brushstart", brushstart)
             .on("brush", brushmove)
             .on("brushend", brushend);
 
-        var muteLeft = svg.append("rect")
+        muteLeft = svg.append("rect")
             .classed('mute', true)
             .attr('fill', '#fff')
             .attr("x", 0)
@@ -362,7 +561,7 @@ $('body').ready(function() {
             .attr("width", 0)
             .attr("height", height);
 
-        var muteRight = svg.append("rect")
+        muteRight = svg.append("rect")
             .classed('mute', true)
             .attr('fill', '#fff')
             .attr("x", 0)
@@ -375,7 +574,7 @@ $('body').ready(function() {
             .startAngle(0)
             .endAngle(function(d, i) { return i ? -Math.PI : Math.PI; });
 
-        var brushg = svg.append("g")
+        brushg = svg.append("g")
                 .attr("class", "brush")
                 .call(brush);
 
@@ -400,7 +599,6 @@ $('body').ready(function() {
           muteLeft.attr('width', x(s[0]));
           muteRight.attr('x', x(s[1]));
           muteRight.attr('width', width - x(s[1]));
-        //   circle.classed("selected", function(d) { return s[0] <= d && d <= s[1]; });
         }
 
         function brushend() {
@@ -408,15 +606,14 @@ $('body').ready(function() {
             s = [Math.round(s[0]), Math.round(s[1])];
             d3.select(this).transition()
                 .call(brush.extent(s));
-            brushmove();
-                // .call(brush.event);
-            // console.log(s);
-            // d3.select(this).transition()
-            //     .call();
-            // muteRight.attr('x', x(s[1]));
-            // muteRight.attr('width', width - x(s[1]));
+
+            muteLeft.transition()
+                .attr("width", x(s[0]));
+            muteRight.transition()
+                .attr('x', x(s[1]))
+                .attr('width', width - x(s[1]));
             buildGraph(1968 + s[0], 1968 + s[1]);
-          svg.classed("selecting", !d3.event.target.empty());
+            svg.classed("selecting", !d3.event.target.empty());
         }
 
     }
@@ -434,7 +631,6 @@ $('body').ready(function() {
     }
 
     function resize() {
-        $("#topic-stream").empty();
         redraw();
     }
 
@@ -460,7 +656,7 @@ $('body').ready(function() {
         layers = stack(d3.range(data.topics.length).map(function(dt) { return dataLayer(dt); })).map(function(l, i) { return {t: i, layer:l }; });
 
         years = data.topics[0].dates;
-        redraw(layers);
+        draw(layers);
 
         d3.select(window).on('resize', resize);
 
@@ -478,8 +674,6 @@ $('body').ready(function() {
     width: 100%;
     top: 50;
     left:0;
-
-
     border-width: 0 0 10px 0;
         -webkit-border-image:
             -webkit-gradient(linear, 100% 0, 0 0, from(white), to(#D4D8D1)) 100% 1;
@@ -489,7 +683,8 @@ $('body').ready(function() {
                  -o-linear-gradient(top, white, #D4D8D1) 100% 1;
 }
 #topic-stream {
-    height: 140px;
+    margin-bottom: 10px;
+    /*height: 80px;*/
 }
 </style>
 {% endblock %}
@@ -506,19 +701,20 @@ $('body').ready(function() {
     </span>
     <div id="topic-stream">
     </div>
-    <h1 class="h1 display-1 page-title">The Topic Model Browser<h1>
+    <div class="container-fluid">
+        <span class="h1 display-1 page-title">The Topic Model Browser</span>
+    </div>
 </div>
     <!-- </div>
 </div> -->
-<div class="container-fluid" style="margin-top: 235px;">
+<div class="container-fluid" style="margin-top: 140px;">
     <div class="row">
-        <div class="col-sm-8" id="networkVisContainer">
+        <div class="col-sm-8 panel" id="networkVisContainer" style="padding: 1px;">
             <div id="cyTopics" style="height: 400px;">
             </div>
             <p class="text text-muted text-small">
-                Use your mouse wheel or track pad to zoom in and out. Click on a topic
-                to view details. Click on an edge between two topics for details about
-                their relationship.
+                Use your mouse wheel or track pad to zoom in and out. Click on a node to view
+                details about that topic.
             </p>
         </div>
         <div class="col-sm-4">
@@ -535,21 +731,11 @@ $('body').ready(function() {
                     <ul id="topic-details-terms-1-list" class="topic-details-terms-list">
                     </ul>
                 </div>
-                <div class="panel topic-details-2" style="visibility: hidden;">
-                    <span class="h4" id="topic-details-heading-2"></span>
-                </div>
-                <div class="panel-body topic-details-2" id="topic-details-terms-2" style="visibility: hidden;">
-                    <ul id="topic-details-terms-2-list" class="topic-details-terms-list">
-                    </ul>
-                </div>
             </div>
             <div class="panel topic-details" style="visibility: hidden;">
                 <div class="panel-heading h4" id="topic-details-documents-heading"></div>
-                <div class="panel-body">
-                    <ul id="topic-details-documents">
-                    </ul>
-                    <span class="pull-right"><a href="#">More...</a></span>
-                </div>
+                <ul class="list-group" id="topic-details-documents">
+                </ul>
             </div>
         </div>
     </div>

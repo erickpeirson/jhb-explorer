@@ -6,22 +6,29 @@
 {% block content %}
 <style>
 .node circle {
-   fill: #fff;
-   stroke: steelblue;
+   /*fill: #B74934;*/
+   stroke: #AA9A66;
    stroke-width: 3px;
  }
 
- .node text { font: 12px sans-serif; }
+ .node text {
+     font: 12px;
+ }
 
  .node {
     cursor: pointer;
 }
 
- .link {
+.link {
    fill: none;
    stroke: #ccc;
    stroke-width: 2px;
  }
+
+ #topic-stream {
+     height: 40px;
+ }
+
 </style>
 
 <div id="topic-stream-container">
@@ -37,16 +44,71 @@
 
 </div>
 
-<div class="row" style="margin-top: 220px;">
-    <div class="col-sm-12">
-        <div class="panel">
-            <div id="tree" style="height: 200px;">
+<div class="container-fluid">
+    <div class="row" style="margin-top: 120px;">
+        <div class="col-sm-6">
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="h4 display-4">
+                        Articles that refer to this taxon<span class="assignmentQualifier"></span>
+                    </span>
+                </div>
+                <div style="max-height: 200px; overflow-y: scroll;">
+                <table class="table small-text table-condensed">
+                    <thead>
+                        <tr>
+                            <td class="col-sm-2">Published</td>
+                            <td>Title</td>
+                            <td class="col-sm-2">Count</td>
+                        </tr>
+                    </thead>
+                    <tbody id="assignments">
+                    </tbody>
+                </table>
+                </div>
+            </div>
 
+        </div>
+        <div class="col-sm-6">
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="h4 display-4">
+                        Topics associated with this taxon<span class="assignmentQualifier"></span>
+                    </span>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="panel">
+                <div class="panel-heading">
+                    <span class="text text-info">Use the tree browser below to find related taxa. Click on the <i class="fa fa-link"></i> next to a node to go to the detail view for that taxon. Click and drag to pan.</span>
+                </div>
+                <div id="tree" style="height: 200px;">
+                </div>
+                <div class="panel-footer">
+                    <svg height="40" width="100%">
+                        <g class="node" transform="translate(15, 15)">
+                            <circle r="10" fill="#221100"></circle>
+                            <text dx="15" dy="5">Focal</text>
+                        </g>
+                        <g class="node" transform="translate(90, 15)">
+                            <circle r="10" fill="#B74934"></circle>
+                            <text dx="15" dy="5">Collapsed</text>
+                        </g>
+                        <g class="node" transform="translate(195, 15)">
+                            <circle r="10" fill="#577492"></circle>
+                            <text dx="15" dy="5">Terminal</text>
+                        </g>
+                    </svg>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 
 <div class="modal fade" id="organismModal" tabindex="-1" role="dialog" aria-labelledby="organismModal">
@@ -74,15 +136,18 @@
                     discussed in <em>JHB</em> using the NCBI Entrez APIs.
                 </p>
                 <p>
-                    On this page, the organisms that LINNAEUS found are grouped into NCBI Taxonomy's major "divisions".
-                    Note that these divisions are not mutually exclusive: <strong>Rodents</strong> are separated from
-                    <strong>Mammals</strong>, which are in turn are separated from <strong>Vertebrates</strong>. The
-                    stream-graph at the top of the page shows the relative number of documents in which LINNAEUS identified
-                    references to an organism in each division. The donut chart shows the combined totals for the time
-                    period selected in the stream-graph. The table on the right lists the top taxa for the selected
-                    time period and division. Clicking on a taxon name will take you to a page with details about the
-                    taxon, including the articles in which LINNAEUS detected it, and external resources discovered
-                    via the NCBI Entrez APIs.
+                    The <strong>stream view of the top of the page</strong> shows the relative number of references to this taxon
+                    (and its sub-taxa) over time. <strong>On the left</strong>, the articles in which references to this taxon
+                    are listed by reference count in descending order. <strong>On the right</strong> are listed topics with which
+                    this taxon is highly correlated (i.e. occur frequently together on the same page).
+                </p>
+                <p>
+                    The <strong>cladogram browser at the bottom of the page</strong> allows you to find other related taxa based on
+                    the taxonomic relationships in the NCBI Taxonomy database. Note that this is not a phylogenetic
+                    tree: the lengths of the branches are arbitrary, and nodes at each level are often not of the
+                    same rank. In cases where several nested ranks contain only a single terminal node, intermediate
+                    ranks may be excluded entirely. This visualization is intended merely as an aid for navigating
+                    the <em>JHB</em>.
                 </p>
             </div>
             <div class="modal-footer">
@@ -94,18 +159,25 @@
 
 <script>
 
-var layers,
+var startYear = 1975,
+    endYear = 1990,
+    svg,
+    brush,
+    muteLeft,
+    muteRight,
+    brushg,
+    brushPos = [47-(2013-startYear), 47-(2013-endYear)],
     years,
     m,
     n=20,
     stack = d3.layout.stack().offset("wiggle");
 
-    var color = ["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
-                 "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
-                 "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788"];
+var color = ["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
+             "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
+             "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788"];
 var thisColor = color[Math.floor(Math.random() * color.length)];
 
-var redraw = function() {
+var redraw = function () {
     var width = parseInt(d3.select('#topic-stream').style('width'), 10),
         height = parseInt(d3.select('#topic-stream').style('height'), 10);
 
@@ -130,7 +202,99 @@ var redraw = function() {
             return String(years[d]);
         });
 
-    var svg = d3.select("#topic-stream").append("svg")
+    // Update overall dimensions.
+    svg.attr("height", height)
+        .attr("width", width);
+
+    // Update stream paths.
+    svg.selectAll("path")
+        .data(layers)
+        .attr("d", area);
+
+    // Resize brush domain.
+    function brushstart() {
+      svg.classed("selecting", true);
+    }
+
+    function brushmove() {
+      var s = brush.extent();
+      brushPos = s;
+
+      muteLeft.attr('width', x(s[0]));
+      muteRight.attr('x', x(s[1]));
+      muteRight.attr('width', width - x(s[1]));
+    }
+
+    function brushend() {
+        var s = brush.extent();
+        s = [Math.round(s[0]), Math.round(s[1])];
+        d3.select(this).transition()
+            .call(brush.extent(s));
+
+        muteLeft.transition()
+            .attr("width", x(s[0]));
+        muteRight.transition()
+            .attr('x', x(s[1]))
+            .attr('width', width - x(s[1]));
+        startYear = 1968 + s[0];
+        endYear = 1968 + s[1];
+
+        refreshOrganismData(startYear, endYear);
+        svg.classed("selecting", !d3.event.target.empty());
+    }
+
+    brush.x(x)
+        .extent(brushPos)
+        .on("brushstart", brushstart)
+        .on("brush", brushmove)
+        .on("brushend", brushend);
+
+        var s = brush.extent();
+        brushPos = s;
+
+        muteLeft.attr('width', x(s[0]));
+        muteRight.attr('x', x(s[1]));
+        muteRight.attr('width', width - x(s[1]));
+
+        brushg.call(brush);
+
+    // Resize the X axis.
+    d3.select('.axis')
+        .attr("transform", "translate(0," + height + ")")
+        .call(axis)
+        .selectAll('text')  // Rotate and reposition x axis labels.
+        .attr("transform", "rotate(-90)" )
+            .attr("dx", height/2)
+            .attr("dy", "1.7em");
+
+}
+
+var draw = function() {
+    var width = parseInt(d3.select('#topic-stream').style('width'), 10),
+        height = parseInt(d3.select('#topic-stream').style('height'), 10);
+
+    var x = d3.scale.linear()
+        .domain([0, m - 1])
+        .range([0, width]);
+
+    var y = d3.scale.linear()
+        .domain([0, d3.max(layers, function(layer) { return d3.max(layer, function(d) { return d.y0 + d.y; }); })])
+        .range([height, 0]);
+
+    var area = d3.svg.area()
+        .interpolate("basis")
+        .x(function(d) { return x(d.x); })
+        .y0(function(d) { return y(d.y0); })
+        .y1(function(d) { return y(d.y0 + d.y); });
+
+    var axis = d3.svg.axis()
+        .scale(x)
+        .orient("top")
+        .tickFormat(function(d, i) {
+            return String(years[d]);
+        });
+
+    svg = d3.select("#topic-stream").append("svg")
         .attr("width", width)
         .attr("height", height);
 
@@ -140,14 +304,88 @@ var redraw = function() {
         .attr("d", area)
         .style("fill", thisColor);
 
-        svg.append("g")
-            .attr("class", "axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(axis)
-                .selectAll('text')  // Rotate and reposition x axis labels.
-                .attr("transform", "rotate(-90)" )
-                    .attr("dx", height/2)
-                    .attr("dy", "1.7em");
+    svg.append("g")
+        .attr("class", "axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(axis)
+            .selectAll('text')  // Rotate and reposition x axis labels.
+            .attr("transform", "rotate(-90)" )
+                .attr("dx", height/2)
+                .attr("dy", "1.7em");
+
+    brush = d3.svg.brush()
+        .x(x)
+        .extent(brushPos)
+        .on("brushstart", brushstart)
+        .on("brush", brushmove)
+        .on("brushend", brushend);
+
+    muteLeft = svg.append("rect")
+        .classed('mute', true)
+        .attr('fill', '#fff')
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 0)
+        .attr("height", height);
+
+    muteRight = svg.append("rect")
+        .classed('mute', true)
+        .attr('fill', '#fff')
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 0)
+        .attr("height", height);
+
+    var arc = d3.svg.arc()
+        .outerRadius(height / 8)
+        .startAngle(0)
+        .endAngle(function(d, i) { return i ? -Math.PI : Math.PI; });
+
+    brushg = svg.append("g")
+            .attr("class", "brush")
+            .call(brush);
+
+    brushg.selectAll(".resize").append("path")
+        .attr("transform", "translate(0," +  height / 2 + ")")
+        .attr("d", arc);
+
+    brushg.selectAll("rect")
+        .attr("height", height-1);
+
+    brushstart();
+    brushmove();
+    refreshOrganismData(startYear, endYear);
+
+    function brushstart() {
+      svg.classed("selecting", true);
+    }
+
+    function brushmove() {
+      var s = brush.extent();
+      brushPos = s;
+
+      muteLeft.attr('width', x(s[0]));
+      muteRight.attr('x', x(s[1]));
+      muteRight.attr('width', width - x(s[1]));
+    }
+
+    function brushend() {
+        var s = brush.extent();
+        s = [Math.round(s[0]), Math.round(s[1])];
+        d3.select(this).transition()
+            .call(brush.extent(s));
+
+        muteLeft.transition()
+            .attr("width", x(s[0]));
+        muteRight.transition()
+            .attr('x', x(s[1]))
+            .attr('width', width - x(s[1]));
+        startYear = 1968 + s[0];
+        endYear = 1968 + s[1];
+
+        refreshOrganismData(startYear, endYear);
+        svg.classed("selecting", !d3.event.target.empty());
+    }
 }
 
 function transition() {
@@ -163,8 +401,39 @@ function transition() {
 }
 
 function resize() {
-    $("#topic-stream").empty();
     redraw();
+}
+
+var clearContainingDocuments = function () {
+    $('#assignments').empty();
+}
+
+
+var addContainingDocuments = function(data) {
+    var assignmentsElem = $('#assignments');
+    data.documents.forEach(function(doc) {
+        var dateRow = $('<td>' + doc.pubdate + '</td>')
+        var assignmentLinkRow = $('<td><a href="/documents/' + doc.id + '/">' + doc.title + '</a></td>');
+        var progressRow = $('<td><span class="badge">' + doc.weight + '</span></td>');
+        var rowElem = $('<tr>');
+        rowElem.append(dateRow)
+            .append(assignmentLinkRow)
+            .append(progressRow);
+
+        assignmentsElem.append(rowElem);
+    });
+}
+
+// Get documents and related topics.
+var refreshOrganismData = function(start, end) {
+    $.ajax('?data=json&start=' + start + '&end=' + end, {
+        success: function(elements) {
+            clearContainingDocuments();
+            addContainingDocuments(elements);
+
+            $('.assignmentQualifier').text(' (' + start + '\u2013' + end + ')');
+        }
+    });
 }
 
 d3.json("/organisms/{{ taxon.id }}/?data=time", function(data) {
@@ -174,10 +443,9 @@ d3.json("/organisms/{{ taxon.id }}/?data=time", function(data) {
     var a = [], i;
     for (i = 0; i < m; ++i) a[i] = 0;
     var series = a.map(function(d, i) { return {x: i, y: data.values[i]}; });
-    // console.log(data.values);
     layers = stack([series]);
     years = data.dates;
-    redraw(layers);
+    draw(layers);
     d3.select(window).on('resize', resize);
 });
 </script>
@@ -185,6 +453,7 @@ d3.json("/organisms/{{ taxon.id }}/?data=time", function(data) {
 
 
 <script>
+
 
 var orgFormat = function(organism) {
     orgString = '';
@@ -199,7 +468,7 @@ var orgFormat = function(organism) {
     return orgString;
 }
 
-d3.json("?data=neighbors", function(data) {
+d3.json("?data=tree", function(data) {
     var margin = {top: 20, right: 120, bottom: 20, left: 120},
         treeWidth = parseInt(d3.select('#tree').style('width'), 10) - margin.right - margin.left,
         treeHeight = parseInt(d3.select('#tree').style('height'), 10) - margin.top - margin.bottom;
@@ -209,16 +478,32 @@ d3.json("?data=neighbors", function(data) {
         root;
 
     var tree = d3.layout.tree()
-        .size([treeHeight, treeWidth]);
+        .size([treeHeight*2, treeWidth]);
 
     var diagonal = d3.svg.diagonal()
         .projection(function(d) { return [d.y, d.x]; });
 
-    var svg = d3.select("#tree").append("svg")
+    var treesvg = d3.select("#tree").append("svg")
         .attr("width", treeWidth + margin.right + margin.left)
         .attr("height", treeHeight + margin.top + margin.bottom)
       .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        .attr("transform", "translate(" + margin.left + "," + -treeHeight/2 + ")");
+
+    // Dragable surface.
+    var rect = treesvg.append("rect")
+        .attr("width", treeWidth + margin.right + margin.left)
+        .attr("height", treeHeight + margin.top + margin.bottom)
+        .style("fill", "none")
+        .style("pointer-events", "all");
+
+    // Nodes and edges go in here.
+    var container = treesvg.append('g')
+        .attr("transform", "translate(0, 0)");
+
+    var zoom = d3.behavior.zoom()
+        .scaleExtent([0.5, 5])
+        .on("zoom", zoomed);
+    treesvg.call(zoom);
 
     root = data.data[0];
 
@@ -234,47 +519,87 @@ d3.json("?data=neighbors", function(data) {
     }
     function collapse(d) {
         if (d.children) {
-            d._children = d.children;
+
             if (data.direct.indexOf(d.id) == -1) {
+                d._children = d.children;
                 d.children = null;
+                d._children.forEach(collapse);
+            } else {
+                d.children.forEach(collapse);
             }
-            d._children.forEach(collapse);
+
         }
     }
     root.children.forEach(collapse);
-        root.x0 = treeHeight / 2;
-      root.y0 = 0;
+    root.x0 = treeHeight / 2;
+    root.y0 = 0;
     update(root);
 
+    function dragstarted(d) {
+        d3.event.sourceEvent.stopPropagation();
+        d3.select(this).classed("dragging", true);
+    }
+
+    function dragged(d) {
+        d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+    }
+
+    function dragended(d) {
+        d3.select(this).classed("dragging", false);
+    }
+    function zoomed() {
+        container.attr("transform", function() {
+            return "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")";
+        });
+    }
+
     function update(source) {
+        // Compute the new tree layout.
+        var nodes = tree.nodes(root).reverse(),
+            links = tree.links(nodes);
 
-          // Compute the new tree layout.
-          var nodes = tree.nodes(root).reverse(),
-              links = tree.links(nodes);
+        // Normalize for fixed-depth.
+        nodes.forEach(function(d) { d.y = d.depth * 180; });
 
-          // Normalize for fixed-depth.
-          nodes.forEach(function(d) { d.y = d.depth * 180; });
+        // Update the nodes…
+        var node = container.selectAll("g.node")
+            .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
-          // Update the nodes…
-          var node = svg.selectAll("g.node")
-              .data(nodes, function(d) { return d.id || (d.id = ++i); });
+        // Enter any new nodes at the parent's previous position.
+        var nodeEnter = node.enter().append("g")
+            .attr("class", "node")
+            .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+            .on("click", click);
 
-          // Enter any new nodes at the parent's previous position.
-          var nodeEnter = node.enter().append("g")
-              .attr("class", "node")
-              .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-              .on("click", click);
-
-          nodeEnter.append("circle")
-              .attr("r", 1e-6)
-              .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+        nodeEnter.append("circle")
+            .attr("r", 1e-6)
+            .style("fill", function(d) {
+                if (d.id == data.focal) {
+                    return "#221100";
+                }
+                if (d._children) {
+                    return "#B74934";
+                } else {
+                    return "#577492";
+                }
+            });
 
           nodeEnter.append("text")
-              .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+              .attr("x", function(d) { return d.children || d._children ? -15 : 15; })
               .attr("dy", ".35em")
               .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
               .text(function(d) { return d.scientific_name; })
               .style("fill-opacity", 1e-6);
+
+          nodeEnter.append('a')
+              .attr("xlink:href", function(d) { return "/organisms/" + d.id + "/"; })
+              .append("text")
+              .attr("dx", function(d) { return d.children || d._children ? 15 : -30; })
+              .attr("dy", -10)
+              .attr("class", "icon")
+              .text('\uf0c1')    // FontAwesome link icon.
+              .style("fill-opacity", 1e-6);
+
 
           // Transition nodes to their new position.
           var nodeUpdate = node.transition()
@@ -282,11 +607,15 @@ d3.json("?data=neighbors", function(data) {
               .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
           nodeUpdate.select("circle")
-              .attr("r", 4.5)
-              .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+              .attr("r", function(d) { if (d.count > 0) { return 10; } else { return 5; }})
+              .style("fill", function(d) { if (d.id == data.focal) { return "#221100"; } else if (d._children) { return "#B74934"; } else { return "#577492"; }});
 
           nodeUpdate.select("text")
               .style("fill-opacity", 1);
+
+          nodeUpdate.select("a>text.icon")
+              .style("fill-opacity", 1);
+
 
           // Transition exiting nodes to the parent's new position.
           var nodeExit = node.exit().transition()
@@ -300,8 +629,11 @@ d3.json("?data=neighbors", function(data) {
           nodeExit.select("text")
               .style("fill-opacity", 1e-6);
 
+          nodeExit.select("a>text.icon")
+              .style("fill-opacity", 1e-6);
+
           // Update the links…
-          var link = svg.selectAll("path.link")
+          var link = container.selectAll("path.link")
               .data(links, function(d) { return d.target.id; });
 
           // Enter any new links at the parent's previous position.

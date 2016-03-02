@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.template import RequestContext, loader
 from django.http import HttpResponse, HttpResponseRedirect
-from django.db.models import Q
+from django.db.models import Q, Avg, Max, Min
 from django.conf import settings
 from django.db.models import Sum
 from django.db.models import Count
@@ -53,29 +53,57 @@ def organism(request, taxon_id):
     taxon = get_object_or_404(Taxon, pk=taxon_id)
 
     if data == 'time':
-        queryset = TaxonDocumentOccurrence.objects.filter(
-            taxon=taxon_id,
-            document__publication_date__gte=start,
-            document__publication_date__lte=end).values('document__publication_date')
+        cache_key = 'organism__time__%s__%i_%i' % (taxon_id, start, end)
+        response_data = cache.get(cache_key)
+        if response_data is None:
+            queryset = TaxonDocumentOccurrence.objects.filter(
+                taxon_id__in=[child.id for child in taxon.children()],
+                document__publication_date__gte=start,
+                document__publication_date__lte=end).values('document__publication_date')
 
-        by_date = Counter([v['document__publication_date'] for v in queryset])
+            by_date = Counter([v['document__publication_date'] for v in queryset])
 
-        # Fill in years with no occurrences.
-        for i in xrange(start, end + 1):
-            by_date[i] += 0.
+            # Fill in years with no occurrences.
+            for i in xrange(start, end + 1):
+                by_date[i] += 0.
 
-        response_data = json.dumps({'taxon': taxon_id, 'dates': by_date.keys(), 'values': by_date.values()})
+            response_data = json.dumps({'taxon': taxon_id, 'dates': by_date.keys(), 'values': by_date.values()})
+            cache.set(cache_key, response_data, 3600)
         content_type = "application/json"
 
-    elif data == 'neighbors':
-        depth = request.GET.get('depth', 3)
+    elif data == 'tree':
+        depth = request.GET.get('depth', 2)
+        cache_key = 'organism__tree__%s__%i_%i__%i' % (taxon_id, start, end, depth)
+        response_data = cache.get(cache_key)
+        if response_data is None:
+            response_data = json.dumps({
+                'focal': taxon_id,
+                'direct': [t.id for t in taxon.parents()],
+                'data': taxon.tree(depth_up=depth)
+            })
+            cache.set(cache_key, response_data, 3600)
+        content_type = "application/json"
+    elif data == 'json':
+        document_queryset = TaxonDocumentOccurrence.objects\
+            .filter(taxon_id__in=taxon.children())\
+            .order_by('-weight')\
+            .filter(document__publication_date__gte=start)\
+            .filter(document__publication_date__lt=end)\
+            .select_related('document')
+
         response_data = json.dumps({
-            'focal': taxon_id,
-            'direct': [t.id for t in taxon.parents()],
-            'data': taxon.neighbors(depth=depth)
+            'id': taxon.id,
+            'label': taxon.scientific_name,
+            'document_count': document_queryset.count(),
+            'max_weight': document_queryset.aggregate(max_weight=Max('weight'))['max_weight'],
+            'documents': [{
+                'id': assignment.document.id,
+                'title': assignment.document.title,
+                'pubdate': assignment.document.publication_date,
+                'weight': assignment.weight
+            } for assignment in document_queryset]
         })
         content_type = "application/json"
-
     else:
 
         template = loader.get_template('explorer/organism.html')
@@ -99,6 +127,7 @@ def organisms(request):
     division = request.GET.get('division', None)
 
     if data == 'time':
+
         division_series = []
         for value in Taxon.objects.all().values('division').distinct():
             if value['division'] is None:
@@ -115,7 +144,6 @@ def organisms(request):
     elif data == 'json':
         queryset = Taxon.objects.filter(occurrences__document__publication_date__gte=start, occurrences__document__publication_date__lte=end)
         if division and division != 'null' and division != 'undefined':
-            print division
             queryset = queryset.filter(division=division);
         queryset = queryset.annotate(num_occurrences=Count('occurrences')).order_by('-num_occurrences')[:20]
 
@@ -286,13 +314,14 @@ def topic(request, topic_id):
     #  respectively.
     start_year = request.GET.get('start', None)
     end_year = request.GET.get('end', None)
+    min_weight = request.GET.get('weight', 5)
 
     document_queryset = topic.in_documents.order_by('-weight')
     if start_year:
         document_queryset = document_queryset.filter(document__publication_date__gte=start_year)
     if end_year:
         document_queryset = document_queryset.filter(document__publication_date__lt=end_year)
-    document_queryset = document_queryset.select_related('document')
+    document_queryset = document_queryset.filter(weight__gte=min_weight).select_related('document')
 
     term_queryset = topic.assigned_to.order_by('-weight')
 
@@ -308,7 +337,8 @@ def topic(request, topic_id):
             'documents': [{
                 'id': assignment.document.id,
                 'title': assignment.document.title,
-                'pubdate': assignment.document.publication_date
+                'pubdate': assignment.document.publication_date,
+                'weight': assignment.weight
             } for assignment in document_queryset]
         }
         return HttpResponse(json.dumps(data), content_type='application/json')
@@ -372,6 +402,7 @@ def document(request, document_id):
 
     document = get_object_or_404(Document, pk=document_id)
     data = request.GET.get('data', None)
+    initialTopic = request.GET.get('topic', None)
     pages = document.pages.order_by('page_number')
     topics = [page.contains_topic.filter(weight__gte=10).order_by('-weight') for page in pages]
     weights = []
@@ -396,15 +427,14 @@ def document(request, document_id):
         response_data = json.dumps(elements, indent=4)
         return HttpResponse(response_data, content_type="application/json")
     else:
-
-
-
         template = loader.get_template('explorer/document.html')
         context = RequestContext(request, {
             'document': document,
             'pages': zip(pages, topics),
             'active': 'documents',
         })
+        if initialTopic:
+            context['initialTopic'] = initialTopic
         return HttpResponse(template.render(context))
 
 
