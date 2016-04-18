@@ -346,9 +346,6 @@ $(document).ready(function() {
                 var displayTopicDetails = function(node) {
                     var nodeData = node.data();
                     $('.topic-details').css('visibility', 'visible');
-                    $('#topic-details-documents-heading').text('Articles about ' + nodeData.label + ' ('+ startYear +'\u2013'+ endYear +')');
-                    $('#topic-details-heading-1')
-                        .text('Topic ' + nodeData.id);
 
                     /**
                       *  Ensure (relatively) consistent display of terms by
@@ -361,6 +358,10 @@ $(document).ready(function() {
 
                     // Load and display the top 20 terms for this topic.
                     $.get('/topics/' + nodeData.id + '/?data=terms', {}, function(data) {
+                            $('#topic-details-documents-heading').html('Articles about <strong>' + data.label + '</strong> ('+ startYear +'\u2013'+ endYear +')');
+                            $('#topic-details-heading-1')
+                                .text(data.label);
+
                             // `vw` is "viewport width" -- responsive font size!
                             data.terms.forEach(function(term) {
                                 $('#topic-details-terms-1-list')
@@ -723,7 +724,7 @@ $(document).ready(function() {
             .attr("d", arc);
 
         brushg.selectAll("rect")
-            .attr("height", height-1);
+            .attr("height", height - 1);
 
         brushstart();
         brushmove();

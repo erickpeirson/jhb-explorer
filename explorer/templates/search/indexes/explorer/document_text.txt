@@ -1,0 +1,6 @@
+{% load math_filters %}
+
+{{ object.title }}
+{% for termassignment in object.contains_term.all %}
+    {{ termassignment.term.term }}
+{% endfor %}

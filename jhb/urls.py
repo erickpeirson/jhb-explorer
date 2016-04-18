@@ -1,6 +1,10 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from explorer import views
+from explorer import views, forms
+
+# from haystack.query import SearchQuerySet
+#
+# sqs = SearchQuerySet().facet('authors')
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
@@ -19,5 +23,7 @@ urlpatterns = [
     url(r'^authors/$', views.authors, name='entities'),
     url(r'^authors/(?P<author_id>[0-9]+)/$', views.author, name='author_detail'),
     url(r'^locations/$', views.locations, name='locations'),
-    url(r'^locations/(?P<location_id>[0-9]+)/$', views.location, name='location_detail'),    
+    url(r'^locations/(?P<location_id>[0-9]+)/$', views.location, name='location_detail'),
+    url(r'^(?i)search/', views.JHBSearchView.as_view(), name='search'),
+    url(r'^autocomplete/', views.autocomplete, name='autocomplete')
 ]

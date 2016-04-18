@@ -1,3 +1,5 @@
+{% load staticfiles %}
+
 <nav class="navbar navbar-default navbar-fixed-bottom">
     <div class="container-fluid">
         <div class="navbar-nav">
@@ -7,15 +9,17 @@
             <a href="#"
                class="navbar-brand fa fa-book fa-2x"
                data-toggle="tooltip" data-placement="top" title="Read the article"></a>
-            <span data-toggle="modal" data-target="#citeModal">
+            <span data-toggle="modal" data-target="#citeModal" style="cursor: pointer;">
                 <a class="navbar-brand fa fa-link fa-2x"
                    data-toggle="tooltip" data-placement="top" title="How to cite"></a>
             </span>
         </div>
         <div class="navbar-right">
             <a href="http://www.aplacecalledup.com"
-            class="navbar-brand fa fa-arrow-up fa-2x"
-            data-toggle="tooltip" data-placement="top" title="Up Consulting"></a>
+            class="navbar-brand"
+            data-toggle="tooltip" data-placement="top" title="Up Consulting">
+                <img src="{% static "explorer/images/up_logo_tiny.png" %}" class="img img-responsive img-rounded" style="height: 26px;" />
+            </a>
 
         </div>
     </div>

@@ -1,0 +1,101 @@
+{% extends "explorer/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid" style="margin-bottom: 15px;">
+    <div class="row">
+        <div class="col-sm-8 col-sm-offset-2">
+            <form class="autocomplete" method="GET" action="{% url 'search' %}">
+
+                <div class="h4">Explore the <em>Journal of the History of Biology...</em>
+                    <button type="button" class="btn btn-xs" aria-label="Info" data-toggle="modal" data-target="#searchModal">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="What am I looking at?"></span>
+                    </button>
+                </div>
+                <div class="input-group">
+                    {{ form.q }}
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn" id="querysubmit"><i class="fa fa-search"></i> Go</button>
+                    </span>
+               </div>
+
+            </form>
+        </div>
+    </div>
+    {% include "explorer/autocomplete.html" %}
+</div>
+{% if query %}
+<div class="container-fluid">
+    <div class="col-sm-8">
+        <div class="h4 text-warning">Showing results {{ result_start }} - {{ result_end}} of {{ result_total }}
+
+            <span class="pull-right"><a href="?q={{query}}&page={{ page_previous }}"{% if page_current <= 1 %} style="visibility: hidden;"{% endif %}>&#171; Previous</a> | <a href="?q={{query}}&page={{ page_next }}" {% if page_current >= page_last %} style="visibility: hidden;"{% endif %}>Next &#187;</a>
+            </span>
+        </div>
+        <ul class="list-group">
+        {% for result in page_obj.object_list %}
+            <a href="{{ result.object.get_absolute_url }}" class="list-group-item {% if result.model_name == 'document' %}list-group-item-primary{% elif result.model_name == 'author' %}list-group-item-warning{%  elif result.model_name == 'topic' %}list-group-item-info{%  elif result.model_name == 'taxon' %}list-group-item-success{%  elif result.model_name == 'location' %}list-group-item-danger{% endif %}">
+                <i class="glyphicon {% if result.model_name == 'document' %}glyphicon-book{% elif result.model_name == 'author' %}glyphicon-user{%  elif result.model_name == 'topic' %}glyphicon-asterisk{%  elif result.model_name == 'taxon' %}glyphicon-leaf{%  elif result.model_name == 'location' %}glyphicon glyphicon-globe{% endif %}"></i>
+
+                <span class="h5">{% if result.model_name == 'taxon' %}<em>{% endif %}{{ result.title }}{% if result.model_name == 'taxon' %}</em>{% endif %}</span>
+            </a>
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="col-sm-4">
+        <div class="panel panel-sparse">
+            <ul class="list-group">
+                <a href="" class="list-group-item list-group-item-primary">
+                    <i class="glyphicon glyphicon-book"></i> Documents
+                </a>
+                <a href="" class="list-group-item list-group-item-warning">
+                    <i class="glyphicon glyphicon-user"></i> Authors
+                </a>
+                <a href="" class="list-group-item list-group-item-info">
+                    <i class="glyphicon glyphicon-asterisk"></i> Topics
+                </a>
+                <a href="" class="list-group-item list-group-item-success">
+                    <i class="glyphicon glyphicon-leaf"></i> Taxa
+                </a>
+                <a href="" class="list-group-item list-group-item-danger">
+                    <i class="glyphicon glyphicon-globe"></i> Places
+                </a>
+            </ul>
+        </div>
+
+        {% if facets.fields.authors|length > 0 %}
+        <div class="panel panel-sparse">
+            <div class="panel-heading">
+                <span class="h4">Authors</span>
+            </div>
+            <ul class="list-group">
+                {% for author, count in facets.fields.authors %}
+
+                <a class="list-group-item" href="{{ request.get_full_path }}&amp;selected_facets=authors:{{ author }}">{{ author }}</a>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if facets.fields.publication_date|length > 0 %}
+        <div class="panel panel-sparse">
+            <div class="panel-heading">
+                <span class="h4">Publication Date</span>
+            </div>
+            <ul class="list-group">
+                {% for date, count in facets.fields.publication_date %}
+
+                <a class="list-group-item" href="{{ request.get_full_path }}&amp;selected_facets=date:{{ date }}">{{ date }}</a>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {{ facets }}
+    </div>
+</div>
+
+{% endif %}
+
+{% include "explorer/modals/searchModal.html" %}
+
+{% endblock %}

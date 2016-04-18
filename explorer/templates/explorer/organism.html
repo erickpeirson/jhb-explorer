@@ -33,7 +33,7 @@
  }
 
  #topic-stream {
-     height: 40px;
+     height: 50px;
  }
 
 </style>
@@ -65,7 +65,7 @@
     </script>
 
     <div class="row">
-        <div class="col-sm-8">
+        <div class="col-sm-8 col-lg-6">
             <div class="panel panel-sparse">
                 <div class="panel-heading">
                     <span class="h4 display-4">
@@ -110,7 +110,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-4 col-lg-6">
             <div class="panel panel-sparse">
                 <div class="panel-heading">
                     <span class="h4 display-4">
@@ -123,9 +123,9 @@
                         {% for topic_id, topic_label, weight in topics %}
                         <tr>
                             <td>
-                                <a href="{% url "topic_detail" topic_id %}">Topic {{ topic_id }}</a>
+                                <a class="h5" href="{% url "topic_detail" topic_id %}">{{ topic_label }}</a>
                             </td>
-                            <td>
+                            <td class="col-sm-2">
                                 <div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="{{ weight }}" aria-valuemin="0" aria-valuemax="100" style="width: {{weight}}%;"><span class="sr-only">{{weight}}%</span></div></div>
                             </td>
                         </tr>
@@ -266,6 +266,7 @@ var redraw = function () {
         muteRight.transition()
             .attr('x', x(s[1]))
             .attr('width', width - x(s[1]));
+        // TODO: should not be hardcoded.
         startYear = 1968 + s[0];
         endYear = 1968 + s[1];
 
@@ -380,7 +381,7 @@ var draw = function() {
         .attr("d", arc);
 
     brushg.selectAll("rect")
-        .attr("height", height-1);
+        .attr("height", height);
 
     brushstart();
     brushmove();
@@ -410,6 +411,8 @@ var draw = function() {
         muteRight.transition()
             .attr('x', x(s[1]))
             .attr('width', width - x(s[1]));
+
+        // TODO: should not be hardcoded.
         startYear = 1968 + s[0];
         endYear = 1968 + s[1];
 

@@ -1,0 +1,16 @@
+{{ object.forename }}
+{{ object.surname }}
+
+{% for document in object.works.all %}
+    {{ document.title }}
+    {% for assignment in document.top_topics %}
+        {{ assignment.topic }}
+        {% for tassignment in topic.top_term_assignments %}
+            {{ tassignment.term.term }}
+        {% endfor %}
+    {% endfor %}
+
+    {% for termassignment in document.contains_term.all %}
+        {{ termassignment.term.term }}
+    {% endfor %}
+{% endfor %}

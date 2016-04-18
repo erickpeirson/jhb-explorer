@@ -45,30 +45,31 @@ $('body').on('ready', function() {
 </div>
 
 <div class="container-fluid" style="margin-top: -30px; margin-bottom: 15px; background-color: rgba(212, 216, 209, 0.5);">
-    <div class="col-sm-8 col-sm-offset-2 text-center">
-        <form class="form-inline">
-            <!-- <fieldset class="form-group"> -->
-                <div class="row">
-                    <!-- <label for="search" class="h4"> -->
-                            <div class="">Explore Now</div>
-                            <div class="input-group">
-                                <input type="text"
-                                       class="form-control"
-                                       id="search-input"
-                                       style="min-width: 200px"
-                                       placeholder="What are you looking for?">
-                                <span type="submit"
-                                      class="btn input-group-addon">
-                                    <i class="fa fa-search"></i>
-                               </span>
-                           </div>
+    <div class="row">
+        <div class="col-sm-6 col-sm-offset-3 text-center">
+            <form class="autocomplete" method="GET" action="{% url 'search' %}">
 
-                   <!-- </label> -->
+                <div class="h4">Explore Now
+                    <button type="button" class="btn btn-xs" aria-label="Info" data-toggle="modal" data-target="#searchModal">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="What am I looking at?"></span>
+                    </button>
+                </div>
+                <div class="input-group">
+                    {{ search_form.q }}
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn" id="querysubmit"><i class="fa fa-search"></i> Go</button>
+                    </span>
+
+                    <!--  -->
                </div>
-            <!-- </fieldset> -->
-        </form>
 
+                <!-- </fieldset> -->
+            </form>
+        </div>
     </div>
+    {% include "explorer/autocomplete.html" %}
+
+
 </div>
 
 
@@ -152,5 +153,8 @@ $('body').on('ready', function() {
         </div>
     </div>
 </div>
+
+{% include "explorer/modals/searchModal.html" %}
+
 
 {% endblock %}

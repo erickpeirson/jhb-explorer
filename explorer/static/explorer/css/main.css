@@ -198,3 +198,14 @@ body {
 tr.highlight {
     background-color: rgba(255, 167, 0, 0.8);
 }
+
+
+.ac-results {
+    position: absolute;
+    z-index: 500;
+    top: 35px;
+    border: 1px solid gray;
+    background-color: white;
+    width: 100%;
+    text-align: left;
+}

@@ -7,9 +7,12 @@ from django.db.models import Q, Avg, Max, Min, Sum, Count
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django.utils.encoding import smart_text
+from django.core.cache import caches
 
 from rest_framework.renderers import JSONRenderer
-from django.core.cache import caches
+
+from haystack.generic_views import FacetedSearchView
+from haystack.query import EmptySearchQuerySet, SearchQuerySet
 
 from collections import Counter, defaultdict, OrderedDict
 from itertools import combinations, groupby
@@ -22,6 +25,7 @@ import os
 
 from explorer.serializers import TopicSerializer
 from explorer.models import *
+from explorer.forms import *
 
 
 def npmi(f_xy, f_x, f_y):
@@ -41,7 +45,10 @@ def home(request):
     """
 
     template = loader.get_template('explorer/home.html')
-    context = RequestContext(request, {})
+    search_form = JHBSearchForm()
+    context = RequestContext(request, {
+        'search_form': search_form,
+    })
     response_data = template.render(context)
     content_type = "text/html; charset=utf-8"
     return HttpResponse(response_data, content_type=content_type)
@@ -58,7 +65,6 @@ def _organism_topics(taxon):
         'topic__id',
         'topic__label',
     ]
-
 
     # topic_count = Counter()
     # for tid, ntaxa in TopicPageAssignment.objects.annotate(num_taxa=Count('page__belongs_to__taxon_occurrences')).filter(weight__gte=5).values_list('topic__id', 'num_taxa'):
@@ -538,7 +544,7 @@ def topic(request, topic_id):
     if data == 'json':
         raw_data = {
             'id': topic.id,
-            'label': topic.__unicode__(),
+            'label': topic.label,
             'document_count': document_queryset.count(),
             'terms': [{
                 'term': assignment['term__term'],
@@ -566,6 +572,8 @@ def topic(request, topic_id):
     elif data == 'terms':
         response_data = json.dumps({
             # Consumer can control the number of terms via a GET parameter.
+            'id': topic_id,
+            'label': topic.label,
             'terms': topic_terms(topic_id, top=request.GET.get('top', 20))
         })
         content_type = 'application/json'
@@ -582,7 +590,7 @@ def topic(request, topic_id):
         context = RequestContext(request, {
             'topic': topic,
             'associated_topics': topic.associated_with.all(),
-            'topic_colocates': topic_colocates,
+            'topic_colocates': sorted(topic_colocates, key=lambda tc: tc[1].weight)[::-1],
             'in_documents': document_queryset,
             'assigned_to': [{
                 'term': assignment['term__term'],
@@ -602,7 +610,9 @@ def authors(request):
     """
 
     template = loader.get_template('explorer/authors.html')
-    context = RequestContext(request, {})
+    context = RequestContext(request, {
+        'active': 'Authors'
+    })
     return HttpResponse(template.render(context))
 
 
@@ -739,6 +749,7 @@ def author(request, author_id):
         'documents': author.works.all().order_by('publication_date'),
         'topics': _author_topics(author),
         'similar_authors': _similar_authors(author),
+        'active': 'authors',
     })
     return HttpResponse(template.render(context))
 
@@ -870,12 +881,16 @@ def citations(request):
     context = RequestContext(request, {})
     return HttpResponse()
 
+#
+# --- Geography. ---
+#
 
 def _locations_data(start=1968, end=2017, topic=None, author=None):
     """
 
     """
-    queryset = Document.objects.filter(publication_date__gte=start, publication_date__lt=end)
+    queryset = Document.objects.filter(publication_date__gte=start,
+                                       publication_date__lt=end)
     if topic:
         queryset = queryset.filter(contains_topic__topic__id=topic)
     if author:
@@ -939,3 +954,44 @@ def location(request, location_id):
         })
 
         return HttpResponse(response_data, content_type='application/json')
+    return HttpResponseRedirect(reverse('locations'))
+
+
+class JHBSearchView(FacetedSearchView):
+    facet_fields = ['authors', 'publication_date',]
+    queryset = SearchQuerySet()
+    results_per_page = 40
+    form_class = JHBSearchForm
+    template_name = "search/search.html"
+
+    def get_queryset(self):
+        queryset = super(FacetedSearchView, self).get_queryset()
+        return queryset
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(FacetedSearchView, self).get_context_data(*args, **kwargs)
+        page = context['page_obj']
+        context.update({
+            'active': 'search',
+            'result_start': 1 + ((page.number - 1) * page.paginator.per_page),
+            'result_end': min((page.number) * page.paginator.per_page, page.paginator._count),
+            'result_total': page.paginator._count,
+            'page_previous': max(1, page.number - 1),
+            'page_current': page.number,
+            'page_next': min(page.paginator._num_pages, page.number + 1),
+            'page_last': page.paginator._num_pages,
+        })
+        
+        return context
+
+
+def autocomplete(request):
+    query = request.GET.get('q', '')
+    if not query:
+        suggestions = []
+    else:
+        sqs = SearchQuerySet().autocomplete(title=query)[:5]
+        suggestions = [result.title for result in sqs]
+
+    response_data = json.dumps({'results': suggestions})
+    return HttpResponse(response_data, content_type='application/json')

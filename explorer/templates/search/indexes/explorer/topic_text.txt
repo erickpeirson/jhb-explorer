@@ -1,0 +1,4 @@
+{{ object }}
+{% for assignment in object.top_term_assignments %}
+    {{ assignment.term.term }}
+{% endfor %}

@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.urlresolvers import reverse
 
 from explorer import managers
 
@@ -31,10 +32,16 @@ class Document(models.Model):  # Done
     def __unicode__(self):
         return self.title
 
+    def get_absolute_url(self):
+        return reverse('document_detail', args=(self.id,))
+
     @property
     def number_of_pages(self):
         return self.pages.count()
 
+    @property
+    def top_topics(self):
+        return self.contains_topic.filter(weight__gte=5).order_by('-weight')[:10]
 
     objects = managers.DocumentManager()
 
@@ -50,8 +57,18 @@ class Author(models.Model):
     def __unicode__(self):
         return u'%s, %s' % (self.surname.title(), self.forename.title())
 
+    def get_absolute_url(self):
+        return reverse('author_detail', args=(self.id,))
+
 
 class Page(models.Model):    # Done
+    """
+    Represents a single page in a :class:`.Document`\.
+
+    The topic model was fit to the corpus using individual pages as separate
+    documents. We don't provide a separate view for pages, but still need to
+    represent them in the database.
+    """
     belongs_to = models.ForeignKey('Document', related_name='pages')
     page_number = models.IntegerField(default=0)
 
@@ -86,7 +103,24 @@ class Topic(models.Model):   # Done
     def __unicode__(self):
         if self.label:
             return self.label
-        return u'Topic %i' % self.id
+        terms = self.assigned_to.order_by('-weight')\
+                                .values_list('term__term', flat=True)[:5]
+        return u' '.join(terms)
+
+    def get_absolute_url(self):
+        return reverse('topic_detail', args=(self.id,))
+
+    @property
+    def for_display(self):
+        if self.label:
+            return self.label
+        terms = self.assigned_to.order_by('-weight')\
+                                .values_list('term__term', flat=True)[:5]
+        return u', '.join(terms)
+
+    @property
+    def top_term_assignments(self):
+        return self.assigned_to.order_by('-weight')[:100]
 
 
 
@@ -234,6 +268,7 @@ class Location(models.Model):
     """
 
     label = models.CharField(max_length=255)
+    alternate_names = models.TextField(blank=True, null=True)
 
     latitude = models.FloatField(default=0.0)
     longitude = models.FloatField(default=0.0)
@@ -241,6 +276,11 @@ class Location(models.Model):
     uri = models.URLField(max_length=1000)
     """E.g. GeoNames URI."""
 
+    def __unicode__(self):
+        return self.label
+
+    def get_absolute_url(self):
+        return reverse('location_detail', args=(self.id,))
 
     @property
     def articles(self):
@@ -340,6 +380,10 @@ class Taxon(models.Model):
     part_of = models.ForeignKey('Taxon', related_name='contains', null=True)
 
     lineage = models.TextField(blank=True)
+
+    def get_absolute_url(self):
+        return reverse('organism_detail', args=(self.id,))
+
     def get_lineage(self):
         try:
             return [Taxon.objects.get(pk=pk) for pk in json.loads(self.lineage)]

@@ -362,11 +362,10 @@ $(document).ready(function() {
                     <tbody>
                         {% for topic, colocation in topic_colocates %}
                         <tr>
-                            <td><a href="{% url 'topic_detail' topic.id %}">{{ topic }}</a></td>
-                            <td>
+                            <td><a href="{% url 'topic_detail' topic.id %}">{{ topic.for_display }}</a></td>
+                            <td class="col-sm-3">
                                 <div class="progress">
                                     <div class="progress-bar" role="progressbar" aria-valuenow="{{ colocation.weight|multiply:400 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ colocation.weight|multiply:400 }}%;">
-                                        {{ colocation.weight|round_weight }}
                                         <span class="sr-only">{{ colocation.weight }} nPMI</span>
                                     </div>
                                 </div>
@@ -384,7 +383,7 @@ $(document).ready(function() {
     <div class="col-sm-8">
         <div class="panel panel-sparse">
             <div class="panel-heading">
-                <span class="h3 display-4">Articles about {{topic}}<span id="assignmentQualifier"></span></span>
+                <span class="h4 display-4">Articles about <strong><em>{{ topic.for_display }}</em></strong><span id="assignmentQualifier"></span></span>
             </div>
             <div  style="max-height: 300px; overflow-y: scroll;">
                 <table class="table table-condensed small-text">
@@ -404,7 +403,7 @@ $(document).ready(function() {
         <!-- Authors -->
         <div class="panel panel-sparse">
             <div class="panel-heading">
-                <span class="h4">Authors who write about {{topic}}</span>
+                <span class="h4">Authors who write about <strong><em>{{ topic.for_display }}</em></strong></span>
             </div>
             <div  style="max-height: 200px; overflow-y: scroll;">
                 <table class="table table-condensed small-text">

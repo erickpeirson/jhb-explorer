@@ -117,8 +117,8 @@ DATABASES = {
     }
 }
 
-import dj_database_url
-DATABASES['default'] =  dj_database_url.config()
+# import dj_database_url
+# DATABASES['default'] =  dj_database_url.config()
 
 
 # Internationalization
@@ -161,7 +161,7 @@ CACHES = {
 
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'ENGINE': 'explorer.elasticsearch_backends.JHBElasticsearch2SearchEngine',
         'URL': os.environ.get('SEARCHBOX_URL', 'http://127.0.0.1:9200/'),
         'INDEX_NAME': 'haystack',
     },
@@ -171,3 +171,6 @@ VOGONWEB = 'http://www.vogonweb.net'
 
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SSLIFY_DISABLE = True       # The development server will choke on SSL.
+
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 20
