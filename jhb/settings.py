@@ -19,11 +19,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '(z!a=e2w+6l4lmh#&5=!0gfj&l8=+0m6syech$$7*$v1bp^i=&'
+SECRET_KEY = os.environ.get('SECRET_KEY', '(z!a=e2w+6l4lmh#&5=!0gfj&l8=+0m6syech$$7*$v1bp^i=&')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(os.environ.get('DEBUG', True))
 
 ALLOWED_HOSTS = []
 
@@ -117,6 +116,9 @@ DATABASES = {
     }
 }
 
+import dj_database_url
+DATABASES['default'] =  dj_database_url.config()
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
@@ -135,9 +137,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.9/howto/static-files/
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
+STATIC_URL = '/static/'
+
+# Extra places for collectstatic to find static files.
+STATICFILES_DIRS = (
+    os.path.join(PROJECT_ROOT, 'static'),
+)
 
 CACHES = {
     'default': {
