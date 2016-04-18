@@ -11,8 +11,7 @@ def multiply(x, y):
 
 @register.filter
 def weight_to_fontsize(weight):
-    return min(36, weight * 3000)
-
+    return max(2, 4*weight)
 
 @register.filter
 def round_weight(weight):

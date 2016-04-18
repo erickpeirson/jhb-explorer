@@ -11,10 +11,13 @@ urlpatterns = [
     url(r'^topics/(?P<topic_id>[0-9]+)/$', views.topic, name='topic_detail'),
     url(r'^documents/$', views.documents, name='documents'),
     url(r'^documents/(?P<document_id>[0-9]+)/$', views.document, name='document_detail'),
+    url(r'^documents/(?P<document_doi>[0-9/\.]+/$)', views.document_by_doi, name='document_by_doi'),
     url(r'^entities/$', views.entities, name='entities'),
     url(r'^entities/(?P<entity_id>[0-9]+)/$', views.entity, name='entity_detail'),
     url(r'^terms/$', views.terms, name='terms'),
     url(r'^terms/(?P<term_id>[0-9]+)/$', views.entity, name='term_detail'),
     url(r'^authors/$', views.authors, name='entities'),
     url(r'^authors/(?P<author_id>[0-9]+)/$', views.author, name='author_detail'),
+    url(r'^locations/$', views.locations, name='locations'),
+    url(r'^locations/(?P<location_id>[0-9]+)/$', views.location, name='location_detail'),    
 ]

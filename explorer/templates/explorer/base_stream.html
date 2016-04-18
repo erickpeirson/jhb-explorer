@@ -1,0 +1,22 @@
+{% extends "explorer/base.html" %}
+
+{% load staticfiles %}
+
+{% block content %}
+
+    {% block streamcontainer %}
+    <div id="topic-stream-container">
+        <div id="topic-stream">
+        </div>
+    </div>
+    {% endblock %}
+    <div class="container-fluid" style="margin-top: 90px; margin-bottom: 60px;">
+        {% block main %}
+
+        {% endblock %}
+    </div>
+
+    {% block modals %}
+    {% endblock %}
+
+{% endblock %}

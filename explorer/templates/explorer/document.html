@@ -1,11 +1,21 @@
 {% extends 'explorer/base.html' %}
 
 {% load staticfiles %}
+{% load jhb_tags %}
 
 {% block content %}
-<div class="container">
+<style>
+#topic-details-swatch {
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+
+}
+</style>
+
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-9">
+        <div class="col-sm-9">
             <div class="panel">
                 <div class="panel-heading">
                     <h4 class="text-muted pull-right">Topic representation on each page</h4>
@@ -13,69 +23,52 @@
                 <div class="panel-body">
                     <div id="topic-barchart"></div>
 
-                    <h2>{{ document.title }}
+                    <div class="h3">{{ document.title }}
                         <!-- <span class="pull-right btn-group"> -->
                             {% if document.doi %}
-                            <a type="button" href="http://www.jstor.org/stable/{{ document.doi }}" target="_blank" class="btn" aria-label="JSTOR">
-                                <img style="height: 30px;" src="{% static "explorer/images/jstor_logo.jpg" %}" />
-                                <!-- <span class="glyphicon glyphicon-link" aria-hidden="true"></span> -->
+                            <a type="button" href="{{ document.doi|permalink }}" target="_blank" class="btn" aria-label="JSTOR">
+                                <img style="height: 30px;" src="{{ document.doi|permalink_image }}" />
                             </a>
                             {% endif %}
                         <!-- </span> -->
-                    </h2>
-                    <h3>{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</h3>
-                    <ul>
+                    </div>
+                    <div class="h4">{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</div>
+
                         {% for author in document.authors.all %}
-                        <li>
+
                             <a href="{% url "author_detail" author.id  %}">{{ author.forename.title }} {{ author.surname.title }}</a>
-                        </li>
+                        
                         {%endfor%}
 
-                    </ul>
                 </div>
             </div>
+
         </div>
-        <div class="col-md-3">
-            <div class="panel panel-default" id="topic-details" style="visibility: hidden;">
+        <div class="col-sm-3">
+            <div class="panel panel-transparent" id="topic-details" style="visibility: hidden;">
                 <div class="panel-heading clearfix" id="topic-details-heading">
-                    <span id="topic-details-title" class="h5"></span>
-                    <span class="pull-right btn-group">
-                        <a id="topic-details-link" type="button" href="" class="btn btn-default btn-xs" aria-label="Details">
-                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Details
-                        </a>
+                    <span class="h4">
+                        <img class="img img-rounded" id="topic-details-swatch"></img>
+                        <a id="topic-details-link"><span id="topic-details-title"></span></a>
                     </span>
                 </div>
                 <div class="panel-body">
-                    <ul style="padding-left: 0px;" id="topic-details-terms">
+                    <ul style="padding-left: 0px; text-align:center;" id="topic-details-terms">
                     </ul>
                 </div>
 
             </div>
         </div>
+
+
     </div>
-</div>
 
-<div class="container">
     <div class="row">
-        <div class="col-sm-8">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <span class="h3">Organisms</span>
-                </div>
-                <!-- <div class="panel-body"> -->
-                    <ul class="list-group">
-                        {% for occurrence in document.taxon_occurrences.all %}
-                        <a href="#" class="list-group-item">{{ occurrence.taxon.scientific_name }}{% if occurrence.taxon.division %} <span class="label label-primary">{{ occurrence.taxon.division }}</span>{% endif %}</a>
-                        {% endfor %}
-                    </ul>
-                <!-- </div> -->
-            </div>
-        </div>
         {% if document.cites.count > 0 %}
         <div class="col-sm-4">
-            <div class="panel panel-default">
+            <div class="panel panel-sparse">
                 <div class="panel-heading">
-                    <span class="h3">Cites (within JHB)</span>
+                    <span class="h4">Cites (within <em>JHB</em>)</span>
                 </div>
                 <!-- <div class="panel-body"> -->
                     <ul class="list-group">
@@ -87,6 +80,46 @@
             </div>
         </div>
         {% endif %}
+        {% if document.cited_by.count > 0 %}
+        <div class="col-sm-4">
+            <div class="panel panel-sparse">
+                <div class="panel-heading">
+                    <span class="h4">Cited by (within <em>JHB</em>)</span>
+                </div>
+                <!-- <div class="panel-body"> -->
+                    <ul class="list-group">
+                        {% for citation in document.cited_by.all %}
+                        <a href="{% url "document_detail" citation.id %}" class="list-group-item small-text">{{ citation.title }} ({{ citation.publication_date }})</a>
+                        {% endfor %}
+                    </ul>
+                <!-- </div> -->
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="col-sm-4">
+
+            {% if document.taxon_occurrences.count > 0 %}
+            <div class="panel panel-sparse">
+                <div class="panel-heading">
+                    <span class="h4">Organisms</span>
+                </div>
+                    <ul class="list-group" style="max-height: 200px; overflow-y:scroll;">
+                        {% for occurrence in document.taxon_occurrences.all %}
+                        <a href="{% url "organism_detail" occurrence.taxon.id %}" class="list-group-item"><em>{{ occurrence.taxon.scientific_name }}</em> {% if occurrence.taxon.division %} <span class="label label-primary">{{ occurrence.taxon.division }}</span>{% endif %}</a>
+                        {% endfor %}
+                    </ul>
+
+            </div>
+
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+
     </div>
 </div>
 
@@ -95,6 +128,10 @@ var initialTopic;
 {% if initialTopic %}
 initialTopic = {{ initialTopic }};
 {% endif %}
+
+var normalize_weight = function(weight, max_weight) {
+    return Math.max(20, 3*weight/max_weight);
+}
 
 var color = d3.scale.ordinal()
     .range(["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
@@ -205,8 +242,9 @@ var color = d3.scale.ordinal()
             d3.select('#topic-details')
               .style('visibility', 'visible');
 
+            d3.select('#topic-details-swatch').style('background-color', color(data.id));
             d3.select('#topic-details-heading')
-               .style('background-image', 'linear-gradient(to bottom,#f5f5f5 0,'+ color(data.id) + ' 100%)');
+            //    .style('background-image', 'linear-gradient(to bottom,#f5f5f5 0,'+ color(data.id) + ' 100%)');
           d3.select('#topic-details-title')
               .text(data.label);
           d3.select('#topic-details-link')
@@ -216,7 +254,7 @@ var color = d3.scale.ordinal()
             data.terms.forEach(function(term) {
                  termlist.append('li')
                   .classed("topic-details-term", true)
-                  .style("font-size", Math.max(10, 25*term.weight/maxWeight))
+                  .attr("style", "font-size:" + Math.max(0.5, term.weight*2.5) + 'vw;')
                   .text(term.term);
             });
         });
@@ -229,7 +267,19 @@ var color = d3.scale.ordinal()
         $('#topic-barchart').empty();
         redraw();
     };
-    d3.select(window).on('resize', resize);
+
+    var windowWidth = $(window).width();
+    d3.select(window).on('resize', function(event) {
+        var diff = windowWidth - $(window).width();
+        if (diff > 10 | diff < -10) {
+            resize(event);
+            windowWidth = $(window).width();
+        }
+    })
+    d3.select(window).on('orientationchange', function(event) {
+        resize(event);
+        windowWidth = $(window).width();
+    });
 
 
 

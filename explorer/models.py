@@ -1,6 +1,11 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+
+from explorer import managers
+
 import json
+
+
 
 class Document(models.Model):  # Done
     """
@@ -13,10 +18,10 @@ class Document(models.Model):  # Done
     doi = models.CharField(max_length=50)
     """Document Object Identifier."""
 
-    volume = models.CharField(max_length=10)
+    volume = models.CharField(max_length=10, null=True, blank=True)
     """Volume of JHB in which the article was published."""
 
-    issue = models.CharField(max_length=10)
+    issue = models.CharField(max_length=10, null=True, blank=True)
     """Issue (in ``volume``) of JHB in which the article was published."""
 
     cites = models.ManyToManyField('Document', related_name='cited_by')
@@ -29,6 +34,9 @@ class Document(models.Model):  # Done
     @property
     def number_of_pages(self):
         return self.pages.count()
+
+
+    objects = managers.DocumentManager()
 
 
 class Author(models.Model):
@@ -190,6 +198,14 @@ class TermDocumentAssignment(models.Model):  # Done
     weight = models.IntegerField(default=0)
 
 
+class AuthorExternalResource(models.Model):
+    author = models.ForeignKey('Author', related_name='resources')
+    resource = models.ForeignKey('ExternalResource', related_name='authors')
+    confidence = models.FloatField(default=1.0,
+                                   validators=[MinValueValidator(0.0),
+                                               MaxValueValidator(1.0)])
+
+
 class ExternalResource(models.Model):
     """
 
@@ -210,6 +226,52 @@ class ExternalResource(models.Model):
         (TAXONOMY, 'NCBI Taxonomy Database'),
     )
     resource_type = models.CharField(max_length=255, choices=RESOURCE_TYPES)
+
+
+class Location(models.Model):
+    """
+    A geographic location.
+    """
+
+    label = models.CharField(max_length=255)
+
+    latitude = models.FloatField(default=0.0)
+    longitude = models.FloatField(default=0.0)
+
+    uri = models.URLField(max_length=1000)
+    """E.g. GeoNames URI."""
+
+
+    @property
+    def articles(self):
+        """
+        All of the articles associated with this location.
+        """
+        return self.documents.document.values_list('id', flat=True)
+
+    def geojson(self):
+        """
+        """
+        return json.dumps({
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [self.longitude, self.latitude]
+            },
+            "properties": {
+                "label": self.label,
+                "articles": self.articles,
+                "uri": self.uri,
+                "class": 'location',
+            }
+        })
+
+
+class DocumentLocation(models.Model):
+    """
+    """
+    document = models.ForeignKey('Document', related_name='locations')
+    location = models.ForeignKey('Location', related_name='documents')
 
 
 class Entity(models.Model):
@@ -302,7 +364,6 @@ class Taxon(models.Model):
         def traverse_up(taxon):
             result = [taxon]
             if taxon.part_of:
-                print taxon.id, taxon.part_of.id
                 return result + traverse_up(taxon.part_of)
             return result
         return traverse_up(self)
@@ -312,7 +373,7 @@ class Taxon(models.Model):
             result = [taxon]
             if taxon.contains.count() < 2:
                 level -= 1
-            if level < depth_up:
+            if level < depth_up and taxon.part_of:
                 result += traverse_up(taxon.part_of, level + 1)
             return result
 
@@ -324,9 +385,6 @@ class Taxon(models.Model):
                     as_leaf = results[0]
                 elif len(results) > 0:
                     as_leaf["children"] = results
-            # if taxon == self and level < depth + 2:
-            #
-            #     as_leaf["children"] = [traverse_down(ctaxon, level - 2) for ctaxon in taxon.contains.all()]
             return as_leaf
         return [traverse_down(traverse_up(self, 0)[::-1][0], 0)]
 

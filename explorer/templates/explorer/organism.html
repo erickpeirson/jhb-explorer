@@ -1,6 +1,13 @@
 {% extends 'explorer/base.html' %}
 
 {% load staticfiles %}
+
+{% block extrahead %}
+<script src="{% static 'explorer/js/spin.min.js' %}"></script>
+<script src="{% static 'explorer/js/jquery.spin.js' %}"></script>
+{% endblock %}
+
+{% load staticfiles %}
 {% load jhb_tags %}
 
 {% block content %}
@@ -32,32 +39,44 @@
 </style>
 
 <div id="topic-stream-container">
-    <span class="pull-right" style="width: 50px;">
-            <button type="button" class="btn btn-primary btn-xs" aria-label="Info" data-toggle="modal" data-target="#organismModal">
-                <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="What am I looking at?"></span>
-            </button>
 
-    </span>
     <div id="topic-stream">
     </div>
-    <h1 class="h1 display-1 page-title">{{ taxon|format_taxon_name|safe }}</h1>
+
 
 </div>
 
-<div class="container-fluid">
-    <div class="row" style="margin-top: 120px;">
-        <div class="col-sm-6">
-            <div class="panel">
+<div class="container-fluid" style="margin-top: 60px; margin-bottom: 60px;"  id="pie-container">
+
+    <div style="margin-top: 0px; margin-bottom: 10px;">
+        <span class="h3">{{ taxon|format_taxon_name|safe }}
+            <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#organismDetailModal">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+            </button>
+        </span>
+        {% for name in taxon.names.all %}<span class="text-warning" style="cursor: pointer; margin-right: 10px;" data-toggle="tooltip" title="{{ name.name_type }}">{{ name.display_name }}</span>{% endfor %}
+    </div>
+
+    <script>
+
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+    </script>
+
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="panel panel-sparse">
                 <div class="panel-heading">
                     <span class="h4 display-4">
-                        Articles that refer to this taxon<span class="assignmentQualifier"></span>
+                        Articles that refer to <strong>{{ taxon|format_taxon_name|safe }}</strong><span class="assignmentQualifier"></span>
                     </span>
                 </div>
                 <div style="max-height: 200px; overflow-y: scroll;">
                 <table class="table small-text table-condensed">
                     <thead>
                         <tr>
-                            <td class="col-sm-2">Published</td>
+                            <td class="col-sm-2">Date</td>
                             <td>Title</td>
                             <td class="col-sm-2">Count</td>
                         </tr>
@@ -67,22 +86,7 @@
                 </table>
                 </div>
             </div>
-
-        </div>
-        <div class="col-sm-6">
-            <div class="panel">
-                <div class="panel-heading">
-                    <span class="h4 display-4">
-                        Topics associated with this taxon<span class="assignmentQualifier"></span>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-sm-12">
-            <div class="panel">
+            <div class="panel panel-sparse">
                 <div class="panel-heading">
                     <span class="text text-info">Use the tree browser below to find related taxa. Click on the <i class="fa fa-link"></i> next to a node to go to the detail view for that taxon. Click and drag to pan.</span>
                 </div>
@@ -105,57 +109,83 @@
                     </svg>
                 </div>
             </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="panel panel-sparse">
+                <div class="panel-heading">
+                    <span class="h4 display-4">
+                        Topics associated with <strong>{{ taxon|format_taxon_name|safe }}</strong><span class="assignmentQualifier"></span>
+                    </span>
+                </div>
+                <table class="table">
+                <!-- <ul class="list-group"> -->
+                    <tbody>
+                        {% for topic_id, topic_label, weight in topics %}
+                        <tr>
+                            <td>
+                                <a href="{% url "topic_detail" topic_id %}">Topic {{ topic_id }}</a>
+                            </td>
+                            <td>
+                                <div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="{{ weight }}" aria-valuemin="0" aria-valuemax="100" style="width: {{weight}}%;"><span class="sr-only">{{weight}}%</span></div></div>
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+                    </tbody>
+                <!-- </ul> -->
+                </table>
+            </div>
+            {% if resourcegroups|length > 0 %}
+            <div class="panel panel-sparse">
+                <div class="panel-heading">
+                    <span class="h4">Linked Data</span>
+                </div>
+                <ul class="nav nav-pills nav-stacked">
+                    {% for i, name, resources in resourcegroups %}
+                    <li{% if i == 0 %} class="active"{% endif %}>
+                        <a data-toggle="pill" href="#linkeddata-{{i}}">{{name}}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="tab-content panel-body"  style="max-height: 300px; overflow-y: scroll;">
+                    {% for i, name, resources in resourcegroups %}
+                    <div id="linkeddata-{{i}}" class="tab-pane fade{% if i == 0 %} in active{% endif %}">
+                        {% for subject_type, subresources in resources %}
+                        {% if subject_type %}<div class="h5">{{ subject_type }}</div>{% endif %}
+                        <ul class="list-group">
+                            {% for resource in subresources %}
+                            <a class="list-group-item" href="{{resource.url}}" target="_blank">
+                                {% if resource.link_name %}{{ resource.link_name }}{% else %}{{ resource.provider.name }}{% endif %}
+                                <span class="label label-warning" data-toggle="tooltip" title="{{ resource.provider.name }}">{{ resource.provider.abbreviation }}</span>
+                            </a>
+                            {% endfor %}
+                        </ul>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-12">
+
 
         </div>
     </div>
-</div>
 
+    <div class="row">
+        <div class="col-sm-12">
 
-<div class="modal fade" id="organismModal" tabindex="-1" role="dialog" aria-labelledby="organismModal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">Named Entity Recognition: Organisms</h4>
-            </div>
-            <div class="modal-body">
-                <p>
-                    Named Entity Recognition is a machine learning technique for detecting references to classes of
-                    concepts, or entities, in texts. NER models typically focus on detecting references to people,
-                    organizations, and places, but can also find things like currency, quantities, and organisms.
-                    NER isn't fool-proof: the quality of the results depend both on the suitability of the NER model
-                    and on the quality of the texts.
-                </p>
-                <p>
-                    The visualizations on this page depict references to organisms that were detected using an NER
-                    model called LINNAEUS. LINNAEUS was trained on abstracts in the PubMed database, and is unusual
-                    among NER models in that it also tries to disambiguate the entities that it finds. In other words,
-                    it identifies not merely <strong>that</strong> a passage refers to an organism, but also <strong>
-                    which specific organism</strong> is being discussed. LINNAEUS' vocabulary of organisms is the NCBI
-                    Taxonomy database, which means that we can retrieve additional information about each organism
-                    discussed in <em>JHB</em> using the NCBI Entrez APIs.
-                </p>
-                <p>
-                    The <strong>stream view of the top of the page</strong> shows the relative number of references to this taxon
-                    (and its sub-taxa) over time. <strong>On the left</strong>, the articles in which references to this taxon
-                    are listed by reference count in descending order. <strong>On the right</strong> are listed topics with which
-                    this taxon is highly correlated (i.e. occur frequently together on the same page).
-                </p>
-                <p>
-                    The <strong>cladogram browser at the bottom of the page</strong> allows you to find other related taxa based on
-                    the taxonomic relationships in the NCBI Taxonomy database. Note that this is not a phylogenetic
-                    tree: the lengths of the branches are arbitrary, and nodes at each level are often not of the
-                    same rank. In cases where several nested ranks contain only a single terminal node, intermediate
-                    ranks may be excluded entirely. This visualization is intended merely as an aid for navigating
-                    the <em>JHB</em>.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
         </div>
     </div>
+
 </div>
+
+
+{% include "explorer/modals/organismDetailModal.html" %}
 
 <script>
 
@@ -426,8 +456,32 @@ var addContainingDocuments = function(data) {
 
 // Get documents and related topics.
 var refreshOrganismData = function(start, end) {
+    var docSpinOpts = {
+      lines: 12 // The number of lines to draw
+    , length: 10 // The length of each line
+    , width: 7 // The line thickness
+    , radius: 10 // The radius of the inner circle
+    , scale: 1 // Scales overall size of the spinner
+    , corners: 1 // Corner roundness (0..1)
+    , color: '#577492' // #rgb or #rrggbb or array of colors
+    , opacity: 0.25 // Opacity of the lines
+    , rotate: 0 // The rotation offset
+    , direction: 1 // 1: clockwise, -1: counterclockwise
+    , speed: 1 // Rounds per second
+    , trail: 62 // Afterglow percentage
+    , fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+    , zIndex: 2e9 // The z-index (defaults to 2000000000)
+    , className: 'spinner' // The CSS class to assign to the spinner
+    , top: '40%' // Top position relative to parent
+    , left: '50%' // Left position relative to parent
+    , shadow: false // Whether to render a shadow
+    , hwaccel: false // Whether to use hardware acceleration
+    , position: 'absolute' // Element positioning
+    }
+    $('#assignments').spin(docSpinOpts);
     $.ajax('?data=json&start=' + start + '&end=' + end, {
         success: function(elements) {
+            $('#assignments').spin(false);
             clearContainingDocuments();
             addContainingDocuments(elements);
 
@@ -436,7 +490,7 @@ var refreshOrganismData = function(start, end) {
     });
 }
 
-d3.json("/organisms/{{ taxon.id }}/?data=time", function(data) {
+d3.json("{% url 'organism_detail' taxon.id %}?data=time", function(data) {
     n = 20; // number of layers
     m = data.values.length; // number of samples per layer
 
@@ -468,14 +522,68 @@ var orgFormat = function(organism) {
     return orgString;
 }
 
+
+var opts = {
+  lines: 13 // The number of lines to draw
+, length: 21 // The length of each line
+, width: 14 // The line thickness
+, radius: 42 // The radius of the inner circle
+, scale: 1 // Scales overall size of the spinner
+, corners: 1 // Corner roundness (0..1)
+, color: '#577492' // #rgb or #rrggbb or array of colors
+, opacity: 0.25 // Opacity of the lines
+, rotate: 0 // The rotation offset
+, direction: 1 // 1: clockwise, -1: counterclockwise
+, speed: 1 // Rounds per second
+, trail: 62 // Afterglow percentage
+, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
+, zIndex: 2e9 // The z-index (defaults to 2000000000)
+, className: 'spinner' // The CSS class to assign to the spinner
+, top: '60%' // Top position relative to parent
+, left: '50%' // Left position relative to parent
+, shadow: false // Whether to render a shadow
+, hwaccel: false // Whether to use hardware acceleration
+, position: 'absolute' // Element positioning
+}
+
+// Show a spinner in the cladogram/tree view until the data is loaded.
+$('#tree').spin(opts);
+
+
 d3.json("?data=tree", function(data) {
+    $('#tree').spin(false);
+
+    /**
+      * The dimensions of the tree visualization is based on the dimensions of
+      #  its parent container.
+      */
+    var resizeTree = function() {
+        treeWidth = parseInt(d3.select('#tree').style('width'), 10) - margin.right - margin.left,
+        treeHeight = parseInt(d3.select('#tree').style('height'), 10) - margin.top - margin.bottom;
+
+        // Update the layout dimensions.
+        tree.size([treeHeight*2, treeWidth]);
+
+        // Scale the tree visualization itself.
+        d3.select("#tree>svg").attr("width", treeWidth + margin.right + margin.left)
+            .attr("height", treeHeight + margin.top + margin.bottom);
+        d3.select("#tree>svg>g").attr("transform", "translate(" + margin.left + "," + -treeHeight/2 + ")");
+
+        // rect is the dragable surface.
+        rect.attr("width", treeWidth + margin.right + margin.left)
+            .attr("height", treeHeight + margin.top + margin.bottom)
+
+    }
+    d3.select(window).on('resize', resizeTree);
+
+    // Draw the tree for the first time.
     var margin = {top: 20, right: 120, bottom: 20, left: 120},
         treeWidth = parseInt(d3.select('#tree').style('width'), 10) - margin.right - margin.left,
         treeHeight = parseInt(d3.select('#tree').style('height'), 10) - margin.top - margin.bottom;
 
     var i = 0,
-        duration = 750,
-        root;
+        duration = 750,     // milliseconds; Un/collapse transition duration.
+        root;           // We need access to the tree throughout this context.
 
     var tree = d3.layout.tree()
         .size([treeHeight*2, treeWidth]);
@@ -504,9 +612,23 @@ d3.json("?data=tree", function(data) {
         .scaleExtent([0.5, 5])
         .on("zoom", zoomed);
     treesvg.call(zoom);
+    zoom.scale(0.5);
+    zoom.translate([0, treeHeight/2]);
+    zoom.event(treesvg);
 
     root = data.data[0];
 
+    // Position the root of the tree at the far left of the visualization,
+    //  centered verticaly.
+    root.children.forEach(collapse);
+    root.x0 = treeHeight;// / 2;
+    root.y0 = 0;
+    update(root);   // Transition nodes to their initial positions.
+
+    /**
+      *  Swapping .children and ._children controls the display state of the
+      #   node (uncollapsed/collapsed).
+      */
     function click(d) {
         if (d.children) {
             d._children = d.children;
@@ -517,9 +639,13 @@ d3.json("?data=tree", function(data) {
         }
         update(d);
     }
+
+    /**
+      * Collapse all nodes except those along the path from root to the focal
+      *  taxon node.
+      */
     function collapse(d) {
         if (d.children) {
-
             if (data.direct.indexOf(d.id) == -1) {
                 d._children = d.children;
                 d.children = null;
@@ -527,14 +653,12 @@ d3.json("?data=tree", function(data) {
             } else {
                 d.children.forEach(collapse);
             }
-
         }
     }
-    root.children.forEach(collapse);
-    root.x0 = treeHeight / 2;
-    root.y0 = 0;
-    update(root);
 
+    /**
+      * Absorb the drag event while the user pans.
+      */
     function dragstarted(d) {
         d3.event.sourceEvent.stopPropagation();
         d3.select(this).classed("dragging", true);
@@ -547,12 +671,19 @@ d3.json("?data=tree", function(data) {
     function dragended(d) {
         d3.select(this).classed("dragging", false);
     }
+
+    /**
+      * Execute the zoom.
+      */
     function zoomed() {
         container.attr("transform", function() {
             return "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")";
         });
     }
 
+    /**
+      *  Transition the tree visualization to a new layout state.
+      */
     function update(source) {
         // Compute the new tree layout.
         var nodes = tree.nodes(root).reverse(),
@@ -572,15 +703,16 @@ d3.json("?data=tree", function(data) {
             .on("click", click);
 
         nodeEnter.append("circle")
-            .attr("r", 1e-6)
+            .attr("r", 1e-6)    // Too small to be seen.
             .style("fill", function(d) {
+                // TODO: these colors shouldn't be hard-coded.
                 if (d.id == data.focal) {
-                    return "#221100";
+                    return "#221100";   // The focal taxon node.
                 }
                 if (d._children) {
-                    return "#B74934";
+                    return "#B74934";   // A collapsed node with children.
                 } else {
-                    return "#577492";
+                    return "#577492";   // An uncollapsed node.
                 }
             });
 
@@ -591,10 +723,18 @@ d3.json("?data=tree", function(data) {
               .text(function(d) { return d.scientific_name; })
               .style("fill-opacity", 1e-6);
 
+          // The user can click on an icon next to a node to visit the detail
+          //  view for that taxon.
           nodeEnter.append('a')
-              .attr("xlink:href", function(d) { return "/organisms/" + d.id + "/"; })
+                .attr("xlink:href", function(d) {
+                    // TODO: This probably shouldn't be hardcoded.
+                    return "/organisms/" + d.id + "/";
+                })
               .append("text")
-              .attr("dx", function(d) { return d.children || d._children ? 15 : -30; })
+              .attr("dx", function(d) {
+                  // Move the icon out of the way of child nodes/edges.
+                  return d.children || d._children ? 15 : -30;
+              })
               .attr("dy", -10)
               .attr("class", "icon")
               .text('\uf0c1')    // FontAwesome link icon.
@@ -616,21 +756,18 @@ d3.json("?data=tree", function(data) {
           nodeUpdate.select("a>text.icon")
               .style("fill-opacity", 1);
 
-
           // Transition exiting nodes to the parent's new position.
           var nodeExit = node.exit().transition()
               .duration(duration)
               .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
               .remove();
 
-          nodeExit.select("circle")
-              .attr("r", 1e-6);
-
-          nodeExit.select("text")
-              .style("fill-opacity", 1e-6);
-
-          nodeExit.select("a>text.icon")
-              .style("fill-opacity", 1e-6);
+          // We hide the nodes by making them too small to be seen...
+          nodeExit.select("circle").attr("r", 1e-6);
+          // ...making their labels transparent...
+          nodeExit.select("text").style("fill-opacity", 1e-6);
+          // ...and making any attendant icons transparent.
+          nodeExit.select("a>text.icon").style("fill-opacity", 1e-6);
 
           // Update the links…
           var link = container.selectAll("path.link")
@@ -663,7 +800,11 @@ d3.json("?data=tree", function(data) {
             d.x0 = d.x;
             d.y0 = d.y;
           });
+
+
         }
+
+
 });
 </script>
 {% endblock %}

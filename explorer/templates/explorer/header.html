@@ -14,7 +14,7 @@
                 <li{% if active == 'home' or not active %} class="active"{% endif %}><a href="/">Home</a></li>
                 <li{% if active == 'topics' %} class="active"{% endif %}><a href="{% url "topics" %}">Topics</a></li>
                 <li{% if active == 'organisms' %} class="active"{% endif %}><a href="{% url "organisms" %}">Organisms</a></li>
-                <li><a href="#">Citations</a></li>
+                <li{% if active == 'locations' %} class="active"{% endif %}><a href="{% url "locations" %}">Locations</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="../navbar-static-top/">About</a></li>

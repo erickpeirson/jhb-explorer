@@ -1,0 +1,45 @@
+<div class="modal fade" id="organismDetailModal" tabindex="-1" role="dialog" aria-labelledby="organismDetailModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Named Entity Recognition: Organisms</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Named Entity Recognition is a machine learning technique for detecting references to classes of
+                    concepts, or entities, in texts. NER models typically focus on detecting references to people,
+                    organizations, and places, but can also find things like currency, quantities, and organisms.
+                    NER isn't fool-proof: the quality of the results depend both on the suitability of the NER model
+                    and on the quality of the texts.
+                </p>
+                <p>
+                    The visualizations on this page depict references to organisms that were detected using an NER
+                    model called LINNAEUS. LINNAEUS was trained on abstracts in the PubMed database, and is unusual
+                    among NER models in that it also tries to disambiguate the entities that it finds. In other words,
+                    it identifies not merely <strong>that</strong> a passage refers to an organism, but also <strong>
+                    which specific organism</strong> is being discussed. LINNAEUS' vocabulary of organisms is the NCBI
+                    Taxonomy database, which means that we can retrieve additional information about each organism
+                    discussed in <em>JHB</em> using the NCBI Entrez APIs.
+                </p>
+                <p>
+                    The <strong>stream view of the top of the page</strong> shows the relative number of references to this taxon
+                    (and its sub-taxa) over time. <strong>On the left</strong>, the articles in which references to this taxon
+                    are listed by reference count in descending order. <strong>On the right</strong> are listed topics with which
+                    this taxon is highly correlated (i.e. occur frequently together on the same page).
+                </p>
+                <p>
+                    The <strong>cladogram browser at the bottom of the page</strong> allows you to find other related taxa based on
+                    the taxonomic relationships in the NCBI Taxonomy database. Note that this is not a phylogenetic
+                    tree: the lengths of the branches are arbitrary, and nodes at each level are often not of the
+                    same rank. In cases where several nested ranks contain only a single terminal node, intermediate
+                    ranks may be excluded entirely. This visualization is intended merely as an aid for navigating
+                    the <em>JHB</em>.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

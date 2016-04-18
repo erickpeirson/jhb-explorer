@@ -4,8 +4,11 @@
 
 {% block content %}
 <script>
+var minYear = 1968,
+    maxYear = 2017;
 var startYear = 1968;
-var endYear = 2013;
+var endYear = 2017;
+
 $('body').ready(function() {
     var layers,
         pieData,
@@ -31,7 +34,11 @@ $('body').ready(function() {
             .range([0, width]);
 
         var y = d3.scale.linear()
-            .domain([0, d3.max(layers, function(layer) {return d3.max(layer.layer, function(d) { return d.y0 + d.y; }); })])
+            .domain([0, d3.max(layers, function(layer) {
+                return d3.max(layer.layer, function(d) {
+                    return d.y0 + d.y;
+                });
+            })])
             .range([height, 0]);
 
         var area = d3.svg.area()
@@ -130,13 +137,9 @@ $('body').ready(function() {
             muteRight.attr('width', width - x(s[1]));
 
             s = [Math.round(s[0]), Math.round(s[1])];
-            startYear = 1968 + s[0];
-            endYear = 1968 + s[1];
+            startYear = minYear + s[0];
+            endYear = minYear + s[1];
             recalculatePieData();
-            // transitionPie();
-
-
-        //   circle.classed("selected", function(d) { return s[0] <= d && d <= s[1]; });
         }
 
         function brushend() {
@@ -406,7 +409,8 @@ $('body').ready(function() {
             } else {
                 headingString += ' organisms';
             }
-            headingString += ' for the period ' + startYear + ' to ' + endYear;
+            endYear -= 1;
+            headingString += ' for the period ' + startYear + ' through ' + endYear;
             return headingString;
 
         }
@@ -472,27 +476,25 @@ text {
 </style>
 
 <div id="topic-stream-container">
-    <span class="pull-right" style="width: 50px;">
-            <button type="button" class="btn btn-primary btn-xs" aria-label="Info" data-toggle="modal" data-target="#organismModal">
-                <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="What am I looking at?"></span>
-            </button>
-
-    </span>
     <div id="topic-stream">
     </div>
-    <h1 class="h1 display-1 page-title">Organisms in the <em>JHB</em></h1>
-
 </div>
 
-<div class="container" id="pie-container">
-    <div class="row">
-        <div class="col-sm-5">
-            <div id="pie"></div>
+<div class="container-fluid" style="margin-top: 90px; margin-bottom: 60px;"  id="pie-container">
 
+    <div class="h3" style="margin-top: 0px;">Organisms in the <em>JHB</em>
+        <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#organismModal">
+            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+        </button>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-offset-1 col-sm-5">
+            <div id="pie"></div>
         </div>
 
-        <div class="col-sm-7">
-            <div class="panel panel-primary">
+        <div class="col-sm-offset-1 col-sm-4">
+            <div class="panel panel-sparse">
                 <div class="panel-heading">
                     <span class="h4" id="organism-list-heading"></span>
                 </div>
@@ -505,46 +507,6 @@ text {
     </div>
 </div>
 
-<div class="modal fade" id="organismModal" tabindex="-1" role="dialog" aria-labelledby="organismModal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">Named Entity Recognition: Organisms</h4>
-            </div>
-            <div class="modal-body">
-                <p>
-                    Named Entity Recognition is a machine learning technique for detecting references to classes of
-                    concepts, or entities, in texts. NER models typically focus on detecting references to people,
-                    organizations, and places, but can also find things like currency, quantities, and organisms.
-                    NER isn't fool-proof: the quality of the results depend both on the suitability of the NER model
-                    and on the quality of the texts.
-                </p>
-                <p>
-                    The visualizations on this page depict references to organisms that were detected using an NER
-                    model called LINNAEUS. LINNAEUS was trained on abstracts in the PubMed database, and is unusual
-                    among NER models in that it also tries to disambiguate the entities that it finds. In other words,
-                    it identifies not merely <strong>that</strong> a passage refers to an organism, but also <strong>
-                    which specific organism</strong> is being discussed. LINNAEUS' vocabulary of organisms is the NCBI
-                    Taxonomy database, which means that we can retrieve additional information about each organism
-                    discussed in <em>JHB</em> using the NCBI Entrez APIs.
-                </p>
-                <p>
-                    On this page, the organisms that LINNAEUS found are grouped into NCBI Taxonomy's major "divisions".
-                    Note that these divisions are not mutually exclusive: <strong>Rodents</strong> are separated from
-                    <strong>Mammals</strong>, which are in turn are separated from <strong>Vertebrates</strong>. The
-                    stream-graph at the top of the page shows the relative number of documents in which LINNAEUS identified
-                    references to an organism in each division. The donut chart shows the combined totals for the time
-                    period selected in the stream-graph. The table on the right lists the top taxa for the selected
-                    time period and division. Clicking on a taxon name will take you to a page with details about the
-                    taxon, including the articles in which LINNAEUS detected it, and external resources discovered
-                    via the NCBI Entrez APIs.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
+{% include "explorer/modals/organismModal.html" %}
+
 {% endblock %}

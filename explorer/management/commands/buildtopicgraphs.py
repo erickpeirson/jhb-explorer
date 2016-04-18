@@ -1,90 +1,97 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.db.models import Count
+
 from explorer.models import *
+
 import os
 import csv
-import igraph
+import networkx as nx
 import json
 import cPickle as pickle
 import sys
+from collections import defaultdict, Counter
 
 from itertools import combinations
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument('networkx_path', nargs=1, type=str)
+        parser.add_argument('json_path', nargs=1, type=str)
+
     def handle(self, *args, **options):
-        # Load these just once.
-        topics = [topic for topic in Topic.objects.all()]
-        terms = {topic.id: [term for term in topic.assigned_to.order_by('-weight').select_related('term')[:20]] for topic in topics}
-        # with open(os.path.join(settings.BASE_DIR, 'explorer', 'topic_graphs', 'layouts.pickle'), 'r') as f:
-        #     layouts = pickle.load(f)
-        for startYear, endYear in combinations(range(1968, 2014), 2):
+        dates = range(1968, 2018)
 
-            node_data = []
-            edge_data = []
+        by_topic = {}
+        for topic_id in Topic.objects.values_list('id', flat=True):
+            queryset = TopicPageAssignment.objects.filter(topic_id=topic_id, weight__gte=5)
+            date = 'page__belongs_to__publication_date'    # Yucky long field name.
+            by_date = Counter(dict(queryset.values_list(date).annotate(Count(date))))
 
-            print '\r', startYear, endYear,
-            sys.stdout.flush()
-            fname = 'topicgraph_%i_%i.pickle' % (startYear, endYear)
-            fpath = os.path.join(settings.BASE_DIR, 'explorer', 'topic_graphs', fname)
-            with open(fpath, 'r') as f:
-                graph = igraph.load(f)
+            # Adding 0 to a Counter initializes the corresponding key if there is no
+            #  value. Turns out it also sorts the Counter by the order of assignment,
+            #  so we get sorted values for free!
+            for year in dates:
+                by_date[year] += 0.
+            by_topic[topic_id] = by_date
 
-            fname_layout = 'layout_%i_%i.csv' % (startYear, endYear)
-            fpath_layout = os.path.join(settings.BASE_DIR, 'explorer', 'topic_graphs', 'layouts', fname_layout)
-            with open(fpath_layout, 'r') as f:
-                reader = csv.reader(f)
-                layout = {int(l[0]): [float(l[1]), float(l[2])] for l in reader}
+        # Now build JSON documents. Each document will represent the
+        #  graph-state for a specific period (delimited by start and end).
+        networkx_path = options.get('networkx_path')[0]
+        json_path = options.get('json_path')[0]
 
-            # layout = graph.layout_fruchterman_reingold(weights=graph.es['weight'])
-            # bbox = igraph.BoundingBox(900.,900.)
-            # layout.fit_into(bbox)
+        # The date range is inclusive of start, exclusive of end.
+        for start, end in combinations(dates, 2):
+            fname = 'topicgraph_%i_%i.graphml' % (start, end)
+            fpath = os.path.join(networkx_path, fname)
+            graph = nx.read_graphml(fpath)
+            document = []
 
-            for topic in topics:
-                max_weight = max([term.weight for term in terms[topic.id]])
-                min_weight = min([term.weight for term in terms[topic.id]])
-                x, y = tuple(layout[topic.id])
-                node_data.append({
-                    'data': {
-                        'label': topic.label,
-                        'id': str(topic.id),
-                        'pos': {
-                            'x': x,
-                            'y': y,
-                            },
-                        'weight': graph.vs['weight'][topic.id],
-                        'terms': [
-                            {
-                                'id': assignment.term.id,
-                                'term': assignment.term.term,
-                                'weight': 8 + 10 * (assignment.weight - min_weight)/(max_weight - min_weight)
-                            }
-                            for assignment in terms[topic.id]
-                        ],
-                        'documents': [
-                            {
-                                'id': assignment.document.id,
-                                'pubdate': assignment.document.publication_date,
-                                'title': assignment.document.title
-                            }
-                            for assignment in topic.in_documents.filter(weight__gte=0.05,
-                                                                        document__publication_date__gte=startYear,
-                                                                        document__publication_date__lte=endYear).select_related('document')
-                        ]
+            def nonzero(d, s, e):
+                for x in range(s, e):
+                    if d[s] > 0:
+                        return True
+                return False
+
+            nodes_present = set(graph.nodes()) & \
+                            set([str(t) for t, counts in by_topic.iteritems()
+                                 if any([counts[y] > 0 for y
+                                         in xrange(start, end)])])
+
+            # Each node represents a topic.
+            for node, attrs in graph.nodes(data=True):
+                if not node in nodes_present:
+                    continue
+                document.append({
+                    "data": {
+                        "id": str(node),
+                        "label": None,
+                        "weight": attrs['weight'],
+                        "pos": {
+                            "x": attrs['x'],
+                            "y": attrs['y'],
+                        },
+                        # "terms": terms[int(node)],
+                        # "documents": documents_by_range[int(node)][(start, end)],
                     }
                 })
 
-            edges = [(e.tuple, e.attributes()['weight']) for e in graph.es]
-            for edge, weight in edges:
-                edge_data.append({
-                    'data': {
-                        'source': str(edge[0]),
-                        'target': str(edge[1]),
-                        'weight': weight,
+            # Each edge represents a colocation between topics on pages.
+            for source, target, attrs in graph.edges(data=True):
+                if not (source in nodes_present and target in nodes_present):
+                    continue
+
+                document.append({
+                    "data": {
+                        "source": str(source),
+                        "target": str(target),
+                        "weight": attrs['weight'],
                     }
                 })
-            fname_json = 'topic_graph_%i_%i.json' % (startYear, endYear)
-            outpath = os.path.join(settings.BASE_DIR, 'explorer', 'static', 'explorer', 'data', fname_json)
-            with open(outpath, 'w') as f:
-                f.write(json.dumps(node_data + edge_data, indent=4))
+
+            jpath = os.path.join(json_path, 'topic_graph_%i_%i.json' % (start, end))
+            with open(jpath, 'w') as f:
+                json.dump(document, f)
+            print '\r', fname,

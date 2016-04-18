@@ -1,4 +1,4 @@
-{% extends "explorer/base.html" %}
+{% extends "explorer/base_stream.html" %}
 
 {% load staticfiles %}
 
@@ -9,773 +9,103 @@
 <script src="{% static 'explorer/js/jquery.spin.js' %}"></script>
 <script src="{% static 'explorer/js/cytoscape.min.js' %}"></script>
 
-<script>
-// While awaiting a response to an ajax request, a spinner is shown in the
-//  network visualization panel.
-var opts = {
-  lines: 13 // The number of lines to draw
-, length: 21 // The length of each line
-, width: 14 // The line thickness
-, radius: 42 // The radius of the inner circle
-, scale: 1 // Scales overall size of the spinner
-, corners: 1 // Corner roundness (0..1)
-, color: '#577492' // #rgb or #rrggbb or array of colors
-, opacity: 0.25 // Opacity of the lines
-, rotate: 0 // The rotation offset
-, direction: 1 // 1: clockwise, -1: counterclockwise
-, speed: 1 // Rounds per second
-, trail: 62 // Afterglow percentage
-, fps: 20 // Frames per second when using setTimeout() as a fallback for CSS
-, zIndex: 2e9 // The z-index (defaults to 2000000000)
-, className: 'spinner' // The CSS class to assign to the spinner
-, top: '40%' // Top position relative to parent
-, left: '50%' // Left position relative to parent
-, shadow: false // Whether to render a shadow
-, hwaccel: false // Whether to use hardware acceleration
-, position: 'absolute' // Element positioning
-}
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.css' rel='stylesheet' />
 
-$(document)
-    .ajaxStart(function () {
-        $('#networkVisContainer').spin(opts);
+<script src="{% static 'explorer/js/topics.js' %}"></script>
 
-    })
-    .ajaxStop(function () {
-        $('#networkVisContainer').spin(false);
-    });
-
-
-var startYear = 1975;
-var endYear = 1990;
-var selectedTopic = [];
-var cy;
-var svg,
-    brush,
-    muteLeft,
-    muteRight,
-    brushg;
-
-var magnifyStream = function(streamData) {
-    return [{
-        t: streamData[0].t,
-        layer: streamData[0].layer.map(function(pos) {
-            return {
-                x: pos.x,
-                y: pos.y * 10.,
-                y0: pos.y0 / 3.
-            };
-        })
-    }];
-}
-
-var unMagnifyStream = function(streamData) {
-    return [{
-        t: streamData[0].t,
-        layer: streamData[0].layer.map(function(pos) {
-            return {
-                x: pos.x,
-                y: pos.y / 10.,
-                y0: pos.y0 * 3.
-            };
-        })
-    }];
-}
-
-var selectNode = function(node) {
-    node.select();
-
-    var directlyConnected = node.neighborhood();
-    var nonConnected = cy.elements().difference( directlyConnected );
-
-    directlyConnected.nodes().addClass('connectedNodes');
-    nonConnected.nodes().addClass('nonConnectedNodes');
-    node.removeClass('nonConnectedNodes');
-
-    node.neighborhood('edge').edges().addClass('connectedEdge');
-
-    cy.animate({
-        center: {
-            eles: node,
-        }
-    }, {
-        duration: 750,
-    });
-}
-
-// When the page is loaded, request the topic colocation network.
-$('body').ready(function() {
-    var buildGraph = function(startYear, endYear) {
-        $.ajax('?data=graph&startyear=' + startYear + '&endyear=' + endYear, {
-            success: function(elements) {
-                // When the data is returned, generate an interative visualization
-                //  using Cytoscape.js.
-                var minEdgeWeight = 1.0;
-                var maxEdgeWeight = 0.0;
-                var minNodeWeight = 1.0;
-                var maxNodeWeight = 0.0;
-
-                elements.forEach(function(elem) {
-                    var weight = Number(elem.data.weight);
-                    if (elem.data.source) {  // Edge.
-                        if (weight > maxEdgeWeight) maxEdgeWeight = weight;
-                        if (weight < minEdgeWeight) minEdgeWeight = weight;
-                    } else {
-                        if (weight > maxNodeWeight) maxNodeWeight = weight;
-                        if (weight < minNodeWeight) minNodeWeight = weight;
-                    }
-                });
-
-                minNodeWeight = Number(minNodeWeight.toPrecision(4));
-                maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
-                minEdgeWeight = Number(minEdgeWeight.toPrecision(4));
-                maxEdgeWeight = Number(maxEdgeWeight.toPrecision(4));
-
-                cy = cytoscape({
-                    container: $('#cyTopics'),
-                    elements: elements,
-                    minZoom: 0.5,
-                    maxZoom: 3,
-                    panningEnabled: true,
-                    style: [    // The stylesheet for the graph.
-                        {
-                            // Node size is a function of topic prevalence.
-                            selector: 'node',
-                            style: {
-                                'background-color': '#B74934',
-                                'label': 'data(id)',
-                                'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
-                                'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 15, 45)',
-                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 8, 36)'
-                            }
-                        },
-                        {
-                            selector: 'node.connectedNodes',
-                            style: {
-                                'opacity': 1.0,
-                                'border-color': '#AA9A66',
-                                'border-width': 2,
-                                'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
-                                'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 55)',
-                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 18, 52)'
-                            }
-                        },
-                        {
-                            selector: 'node.nonConnectedNodes',
-                            style: {
-                                'opacity': 0.5,
-                            }
-                        },
-                        {
-                            // When a node is selected, it should be slightly larger
-                            //  and have a colored border.
-                            selector: 'node:selected',
-                            style: {
-                                'border-color': '#AA9A66',
-                                'border-width': 4,
-                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 35, 75)',
-                                'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
-                                'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 60, 90)',
-                            }
-                        },
-                        {
-                            // Active nodes should be slightly larger.
-                            selector: 'node:active',
-                            style: {
-                                'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
-                                'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 30, 60)',
-                            }
-                        },
-                        {
-                            // Edge weight is a function of nPMI.
-                            selector: 'edge',
-                            style: {
-                                'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 0.5, 6)',
-                                'opacity': 'mapData(weight, 0.01, 0.5, 0.1, 1)',
-                                'line-color': '#67655D',
-                                'target-arrow-color': '#ccc',
-                            },
-                        },
-                        {
-                            selector: 'edge.connectedEdge',
-                            style: {
-                                'opacity': 1,
-                                'line-color': '#AA9A66',
-                                'z-index': 500,
-                                'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 1, 12)',
-                            }
-                        },
-                        {
-                            // A selected edge should be slightly thicker, and be colored a brighter color.
-                            selector: 'edge:selected',
-                            style: {
-                                'width': 'mapData(weight, ' + minEdgeWeight  + ', ' + maxEdgeWeight + ', 2, 8)',
-                                'opacity': 1,
-                                'line-color': '#AA9A66',
-                            }
-                        },
-                    ],
-
-                    // Pre-calculated joint force layout.
-                    layout: {
-                        name: 'preset',
-                        positions: function(d) {
-                            pos = d._private.data.pos;
-                            // Scale. TODO: should we just change the boundingBox?
-                            return {x: (pos.x + 0.5) * 1800, y:(pos.y + 0.5) * 1800};
-                        },
-                        boundingBox:  { x1: 0, y1: 0, w: 900, h: 900},
-                    }
-                });
-
-
-
-                var displayTopicDetails = function(node) {
-                    var nodeData = node.data();
-                    $('.topic-details').css('visibility', 'visible');
-                    $('#topic-details-documents-heading').text('Articles about ' + nodeData.label + ' ('+ startYear +'\u2013'+ endYear +')');
-                    $('#topic-details-heading-1')
-                        .text('Topic ' + nodeData.id);
-
-                    nodeData.terms.forEach(function(term) {
-                        $('#topic-details-terms-1-list')
-                            .append('<li class="topic-details-term" style="font-size: '+ term.weight*1.5 +';">' + term.term + '</li>');
-                    });
-                    $('#topic-details-1-link').attr('href', '/topics/' + nodeData.id + '/');
-                    $('#topic-details-1-link').css('visibility', 'visible');
-
-                    nodeData.documents.forEach(function(doc) {
-                        $('#topic-details-documents')
-                            .append('<a class="topic-details-document list-group-item" href="/documents/'+ doc.id +'/?topic='+ nodeData.id +'"><span class="label label-primary">' + doc.pubdate + '</span> '+ doc.title +'</a>');
-                    });
-                }
-
-
-                var clearTopicDetails = function() {
-                    $('.topic-details').css('visibility', 'hidden');
-                    $('#topic-details-terms-2-list').empty();
-                    $('#topic-details-heading-2').empty();
-                    $('.topic-details-2').css('visibility', 'hidden');
-
-
-                    $('#topic-details-terms-1-list').empty();
-                    $('#topic-details-heading-1').empty();
-                    $('#topic-details-1-link').css('visibility', 'hidden');
-                    $('.topic-details-1').css('visibility', 'hidden');
-
-                    $('#topic-details-documents').empty();
-
-                    $('#topic-details-documents-heading').empty();
-                }
-
-                var clearSelectedTopics = function() {
-                    clearTopicDetails();
-
-                    cy.elements('edge').edges().removeClass('connectedEdge');
-                    cy.elements('edge').edges().removeClass('nonConnected');
-                    cy.elements('edge').edges().unselect();
-                    cy.elements('node').nodes().removeClass('connectedNodes');
-                    cy.elements('node').nodes().removeClass('nonConnectedNodes');
-                    cy.elements('node').nodes().unselect();
-
-                    clearSelectedStreams();
-                }
-
-                var clearSelectedStreams = function() {
-                    d3.selectAll('.stream')
-                        .classed('stream-muted', false);
-                    d3.selectAll('.stream-highlighted')
-                        .classed('stream-highlighted', false);
-
-                    selectedTopic.forEach(function(topic) {
-                        var streamElem = d3.select('#topic-stream-area-' + topic);
-                        redrawStream(streamElem, unMagnifyStream(streamElem.data()));
-                    });
-                    selectedTopic = [];
-
-                    d3.selectAll('.stream').style('opacity', 1.0);
-                }
-
-                // When a node is clicked, information about the corresponding topic
-                //  is displayed in a neighboring panel.
-                cy.on( 'click', 'node', function(event) {
-                    clearSelectedTopics();
-                    clearTopicDetails();
-
-                    var node = event.cyTarget;  // The node that was clicked.
-                    selectedTopic.push(node._private.data.id);
-                    displayTopicDetails(node);
-
-                    d3.selectAll('.stream').style('opacity', 0.1);
-
-                    var streamElem = d3.select('#topic-stream-area-' + node._private.data.id);
-                    streamElem.style('opacity', 1.0);
-                    redrawStream(streamElem, magnifyStream(streamElem.data()));
-
-                    selectNode(node);
-
-
-                });
-                cy.edges().unselectify();
-
-                // When the esc key is pressed, clear all selections.
-                $(document).keyup(function(e) {
-                     if (e.keyCode == 27) {
-                        clearSelectedTopics();
-                    }
-                });
-
-                // Reselect node.
-                selectedTopic.forEach(function(topic) {
-                    selectNode(cy.$('#' + topic));
-                });
-                clearTopicDetails();
-                if (selectedTopic.length == 1) {
-                    console.log(selectedTopic[0]);
-                    displayTopicDetails(cy.$('#' + selectedTopic[0]));
-                }
-
-            }
-        });
-    }
-
-    buildGraph(startYear, endYear);
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
-    })
-
-    var layers,
-        years,
-        m,
-        n=20,
-        brushPos = [47-(2013-startYear), 47-(2013-endYear)],
-        stack = d3.layout.stack().offset("wiggle");
-
-        var color = ["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
-                     "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
-                     "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788"];
-    var thisColor = color[Math.floor(Math.random() * color.length)];
-
-    /**
-      * Update a single stream with new data.
-      */
-    var redrawStream = function(streamElem, streamData) {
-        var width = parseInt(d3.select('#topic-stream').style('width'), 10),
-            height = parseInt(d3.select('#topic-stream').style('height'), 10);
-
-        var x = d3.scale.linear()
-            .domain([0, m - 1])
-            .range([0, width]);
-
-        var y = d3.scale.linear()
-            .domain([0, d3.max(layers, function(layer) {return d3.max(layer.layer, function(d) { return d.y0 + d.y; }); })])
-            .range([height, 0]);
-
-        var area = d3.svg.area()
-            .interpolate("cardinal")
-            .x(function(d) { return x(d.x); })
-            .y0(function(d) { return y(d.y0); })
-            .y1(function(d) { return y(d.y0 + d.y); });
-
-        streamElem.data(streamData)
-            .transition()
-            .duration(750)
-            .attr("d", function(d) {
-                return area(d.layer);
-            });
-    }
-
-    var redraw = function () {
-        var width = parseInt(d3.select('#topic-stream').style('width'), 10),
-            height = parseInt(d3.select('#topic-stream').style('height'), 10);
-
-        var x = d3.scale.linear()
-            .domain([0, m - 1])
-            .range([0, width]);
-
-        var y = d3.scale.linear()
-            .domain([0, d3.max(layers, function(layer) {return d3.max(layer.layer, function(d) { return d.y0 + d.y; }); })])
-            .range([height, 0]);
-
-        var area = d3.svg.area()
-            .interpolate("cardinal")
-            .x(function(d) { return x(d.x); })
-            .y0(function(d) { return y(d.y0); })
-            .y1(function(d) { return y(d.y0 + d.y); });
-
-        var axis = d3.svg.axis()
-            .scale(x)
-            .orient("top")
-            .tickFormat(function(d, i) {
-                return String(years[d]);
-            });
-
-
-        // Update overall dimensions.
-        svg.attr("height", height)
-            .attr("width", width);
-
-        // Update stream paths.
-        svg.selectAll("path")
-            .data(layers)
-            .attr("d", function(d) {
-                return area(d.layer);
-            });
-
-        // Renew magnification of selected stream(s).
-        selectedTopic.forEach(function(topic) {
-            var selectedElem = d3.select('#topic-stream-area-' + topic);
-            selectedElem.data(magnifyStream(selectedElem.data()))
-                .attr("d", function(d) {
-                    return area(d.layer);
-                });
-        });
-
-        // Resize brush domain.
-        function brushstart() {
-          svg.classed("selecting", true);
-        }
-
-        function brushmove() {
-          var s = brush.extent();
-          brushPos = s;
-
-          muteLeft.attr('width', x(s[0]));
-          muteRight.attr('x', x(s[1]));
-          muteRight.attr('width', width - x(s[1]));
-        }
-
-        function brushend() {
-            var s = brush.extent();
-            s = [Math.round(s[0]), Math.round(s[1])];
-            d3.select(this).transition()
-                .call(brush.extent(s));
-
-            muteLeft.transition()
-                .attr("width", x(s[0]));
-            muteRight.transition()
-                .attr('x', x(s[1]))
-                .attr('width', width - x(s[1]));
-            startYear = 1968 + s[0];
-            endYear = 1968 + s[1];
-            buildGraph(startYear, endYear);
-            svg.classed("selecting", !d3.event.target.empty());
-        }
-
-        brush.x(x)
-            .extent(brushPos)
-            .on("brushstart", brushstart)
-            .on("brush", brushmove)
-            .on("brushend", brushend);
-
-            var s = brush.extent();
-            brushPos = s;
-
-            muteLeft.attr('width', x(s[0]));
-            muteRight.attr('x', x(s[1]));
-            muteRight.attr('width', width - x(s[1]));
-
-            brushg.call(brush);
-
-
-        // Resize the X axis.
-        d3.select('.axis')
-            .attr("transform", "translate(0," + height + ")")
-            .call(axis)
-            .selectAll('text')  // Rotate and reposition x axis labels.
-            .attr("transform", "rotate(-90)" )
-                .attr("dx", height/2)
-                .attr("dy", "1.7em");
-
-        // Reselect node.
-        selectedTopic.forEach(function(topic) {
-            cy.$('#' + topic).select();
-        });
-    }
-
-    var draw = function() {
-        var width = parseInt(d3.select('#topic-stream').style('width'), 10),
-            height = parseInt(d3.select('#topic-stream').style('height'), 10);
-
-        var x = d3.scale.linear()
-            .domain([0, m - 1])
-            .range([0, width]);
-
-        var y = d3.scale.linear()
-            .domain([0, d3.max(layers, function(layer) {return d3.max(layer.layer, function(d) { return d.y0 + d.y; }); })])
-            .range([height, 0]);
-
-        var area = d3.svg.area()
-            .interpolate("cardinal")
-            .x(function(d) { return x(d.x); })
-            .y0(function(d) { return y(d.y0); })
-            .y1(function(d) { return y(d.y0 + d.y); });
-
-        var axis = d3.svg.axis()
-            .scale(x)
-            .orient("top")
-            .tickFormat(function(d, i) {
-                return String(years[d]);
-            });
-
-        svg = d3.select("#topic-stream").append("svg")
-            .attr("width", width)
-            .attr("height", height);
-
-        svg.selectAll("path")
-            .data(layers)
-            .enter().append("path")
-            .attr("d", function(d) {
-                return area(d.layer);
-            })
-            .style("fill", function() {
-                return color[Math.floor(Math.random() * color.length)];
-            })
-            .classed('stream', true)
-            .attr("id", function(d) {
-                // So that we can highlight the stream when the user clicks a node.
-                return 'topic-stream-area-' + String(d.t);
-            });
-
-        svg.append("g")
-            .attr("class", "axis")
-            .attr("transform", "translate(0," + height + ")")
-            .call(axis)
-                .selectAll('text')  // Rotate and reposition x axis labels.
-                .attr("transform", "rotate(-90)" )
-                    .attr("dx", height/2)
-                    .attr("dy", "1.7em");
-
-
-        brush = d3.svg.brush()
-            .x(x)
-            .extent(brushPos)
-            .on("brushstart", brushstart)
-            .on("brush", brushmove)
-            .on("brushend", brushend);
-
-        muteLeft = svg.append("rect")
-            .classed('mute', true)
-            .attr('fill', '#fff')
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", 0)
-            .attr("height", height);
-
-        muteRight = svg.append("rect")
-            .classed('mute', true)
-            .attr('fill', '#fff')
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", 0)
-            .attr("height", height);
-
-        var arc = d3.svg.arc()
-            .outerRadius(height / 8)
-            .startAngle(0)
-            .endAngle(function(d, i) { return i ? -Math.PI : Math.PI; });
-
-        brushg = svg.append("g")
-                .attr("class", "brush")
-                .call(brush);
-
-        brushg.selectAll(".resize").append("path")
-            .attr("transform", "translate(0," +  height / 2 + ")")
-            .attr("d", arc);
-
-        brushg.selectAll("rect")
-            .attr("height", height-1);
-
-        brushstart();
-        brushmove();
-
-        function brushstart() {
-          svg.classed("selecting", true);
-        }
-
-        function brushmove() {
-          var s = brush.extent();
-          brushPos = s;
-
-          muteLeft.attr('width', x(s[0]));
-          muteRight.attr('x', x(s[1]));
-          muteRight.attr('width', width - x(s[1]));
-        }
-
-        function brushend() {
-            var s = brush.extent();
-            s = [Math.round(s[0]), Math.round(s[1])];
-            d3.select(this).transition()
-                .call(brush.extent(s));
-
-            muteLeft.transition()
-                .attr("width", x(s[0]));
-            muteRight.transition()
-                .attr('x', x(s[1]))
-                .attr('width', width - x(s[1]));
-            buildGraph(1968 + s[0], 1968 + s[1]);
-            svg.classed("selecting", !d3.event.target.empty());
-        }
-
-    }
-
-    function transition() {
-        d3.selectAll("path")
-            .data(function() {
-                var d = layers1;
-                layers1 = layers0;
-                return layers0 = d;
-            })
-            .transition()
-            .duration(2500)
-            .attr("d", area);
-    }
-
-    function resize() {
-        redraw();
-    }
-
-
-    d3.json("/topics/?data=time", function(data) {
-
-        n = data.topics.length
-        m = data.topics[0].values.length; // number of samples per layer
-
-        var dataLayer = function(dt) {
-            var a = [], i;
-            for (i = 0; i < m; ++i) a[i] = 0;
-
-            var series = a.map(function(d, i) {
-                return {
-                    x: i,
-                    y0: 0,
-                    y: data.topics[dt].values[i]
-                };
-            });
-            return series;
-        }
-        layers = stack(d3.range(data.topics.length).map(function(dt) { return dataLayer(dt); })).map(function(l, i) { return {t: i, layer:l }; });
-
-        years = data.topics[0].dates;
-        draw(layers);
-
-        d3.select(window).on('resize', resize);
-
-    });
-
-});
-</script>
-<style>
-#topic-stream-container {
-  /*background: url('{% static "explorer/images/network.png" %}') no-repeat center center;*/
-  background-color: white;
-    position: absolute;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    width: 100%;
-    top: 50;
-    left:0;
-    border-width: 0 0 10px 0;
-        -webkit-border-image:
-            -webkit-gradient(linear, 100% 0, 0 0, from(white), to(#D4D8D1)) 100% 1;
-        -webkit-border-image:
-            -webkit-linear-gradient(top, white, #D4D8D1) 100% 1;
-        -o-border-image:
-                 -o-linear-gradient(top, white, #D4D8D1) 100% 1;
-}
-#topic-stream {
-    margin-bottom: 10px;
-    /*height: 80px;*/
-}
-</style>
 {% endblock %}
 
-{% block content %}
+    {% block main %}
 <!-- <div class="container-fluid">
     <div class="panel"> -->
-<div id="topic-stream-container">
-    <span class="pull-right" style="width: 50px;">
-        <button type="button" class="btn btn-primary btn-xs" aria-label="Info" data-toggle="modal" data-target="#infoModal">
+
+    <div class="h3" style="margin-top: 0px;">The Topic Model
+        <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
             <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
         </button>
+    </div>
 
-    </span>
-    <div id="topic-stream">
-    </div>
-    <div class="container-fluid">
-        <span class="h1 display-1 page-title">The Topic Model Browser</span>
-    </div>
-</div>
-    <!-- </div>
-</div> -->
-<div class="container-fluid" style="margin-top: 140px;">
     <div class="row">
-        <div class="col-sm-8 panel" id="networkVisContainer" style="padding: 1px;">
-            <div id="cyTopics" style="height: 400px;">
+        <div class="col-sm-7">
+            <div class="panel" id="networkVisContainer" style="padding: 1px;">
+                <div id="cyTopics" style="height: 300px;"></div>
+                <p class="text text-muted text-small">
+                    Use your mouse wheel or track pad to zoom in and out. Click on a node to view
+                    details about that topic.
+                </p>
             </div>
-            <p class="text text-muted text-small">
-                Use your mouse wheel or track pad to zoom in and out. Click on a node to view
-                details about that topic.
-            </p>
-        </div>
-        <div class="col-sm-4">
+
             <div class="panel topic-details" style="visibility: hidden;">
+                <div class="panel-heading h4" id="topic-details-documents-heading"></div>
+                <ul class="list-group" id="topic-details-documents" style=" max-height: 200px;">
+                </ul>
+            </div>
+
+        </div>
+        <div class="col-sm-5">
+            <div class="panel panel-transparent topic-details" style="visibility: hidden; min-height: 200px;">
                 <div class="panel-heading clearfix">
-                    <span class="h4" id="topic-details-heading-1"></span>
-                    <span class="pull-right btn-group">
+                    <a id="topic-details-1-link" type="button" href="" class="pull-right" aria-label="Details"><span class="h4" id="topic-details-heading-1"></span></a>
+                    <!-- <span class="pull-right btn-group">
                         <a id="topic-details-1-link" type="button" href="" class="btn btn-default btn-xs" aria-label="Details">
                             <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Details
                         </a>
-                    </span>
+                    </span> -->
                 </div>
-                <div class="panel-body" id="topic-details-terms-1">
+                <div class="panel-body" id="topic-details-terms-1" style="text-align: center;">
                     <ul id="topic-details-terms-1-list" class="topic-details-terms-list">
                     </ul>
                 </div>
             </div>
-            <div class="panel topic-details" style="visibility: hidden;">
-                <div class="panel-heading h4" id="topic-details-documents-heading"></div>
-                <ul class="list-group" id="topic-details-documents">
-                </ul>
+            <div class="panel">
+                <div id="map" style="height: 200px;"></div>
             </div>
         </div>
     </div>
-</div>
+    <div class="row">
 
-<!-- Modal -->
-<div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">The Topic Co-Location Graph</h4>
-            </div>
-            <div class="modal-body">
-                <p>
-                    This graph shows all of the topics in the JHB Explorer <a href="#" data-toggle="tooltip" data-placement="top" title="What's that?">topic model</a>,
-                    and how those topics co-occur across the <em>Journal of the History of Biology</em> corpus.
-                </p>
-                <p>
-                    Each topic is represented by a bubble, known to graph-theory nerds as a <strong>"node"</strong>. If you click on a node, information about the
-                    correspoding topic will be shown at right. Each line between a pair of nodes is known as an <strong>"edge"</strong>. If there is an edge between
-                    two nodes, that means that the two corresponding topics frequently occur together (they are <strong>"co-located"</strong>) on pages in <em>JHB</em>.
-                </p>
-                <p>
-                    The width and opacity of each edge corresponds to the <strong><a href="#"  data-toggle="tooltip" data-placement="top" title="Huh?">normalized
-                    pointwise mutual information (nPMI)</a></strong> statistic for the two corresponding topics. The higher the nPMI, the more likely it is that
-                    the listed topic and the current topic are related in some way. An edge is drawn between two topics only if their nPMI is in the upper 98th
-                    percentile. nPMI is more useful than simply looking at how frequently two topics occur together, because it takes into account the probability
-                    that two topics will occur together simply by chance (e.g. because one topic is very prominent in the corpus).
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+    </div>
+
+    <script>
+
+
+
+    </script>
+    {% endblock %}
+
+    {% block modals %}
+
+    <!-- Modal -->
+    <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">The Topic Co-Location Graph</h4>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        This graph shows all of the topics in the JHB Explorer <a href="#" data-toggle="tooltip" data-placement="top" title="What's that?">topic model</a>,
+                        and how those topics co-occur across the <em>Journal of the History of Biology</em> corpus.
+                    </p>
+                    <p>
+                        Each topic is represented by a bubble, known to graph-theory nerds as a <strong>"node"</strong>. If you click on a node, information about the
+                        correspoding topic will be shown at right. Each line between a pair of nodes is known as an <strong>"edge"</strong>. If there is an edge between
+                        two nodes, that means that the two corresponding topics frequently occur together (they are <strong>"co-located"</strong>) on pages in <em>JHB</em>.
+                    </p>
+                    <p>
+                        The width and opacity of each edge corresponds to the <strong><a href="#"  data-toggle="tooltip" data-placement="top" title="Huh?">normalized
+                        pointwise mutual information (nPMI)</a></strong> statistic for the two corresponding topics. The higher the nPMI, the more likely it is that
+                        the listed topic and the current topic are related in some way. An edge is drawn between two topics only if their nPMI is in the upper 98th
+                        percentile. nPMI is more useful than simply looking at how frequently two topics occur together, because it takes into account the probability
+                        that two topics will occur together simply by chance (e.g. because one topic is very prominent in the corpus).
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<script>
-
-
-</script>
-{% endblock %}
+    {% endblock %}

@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'haystack',
     'django_extensions',
     'rest_framework',
+    'concepts',
     'explorer',
 )
 
@@ -156,3 +157,5 @@ HAYSTACK_CONNECTIONS = {
         'BATCH_SIZE': 100,
     },
 }
+
+VOGONWEB = 'http://www.vogonweb.net'

@@ -8,7 +8,7 @@
 }
 
 #topic-details-documents {
-    font-size: 8pt;
+    font-size: 10pt;
     max-height: 400px;
     overflow-y: scroll;
     /*padding-left: 10px;*/
@@ -162,6 +162,39 @@ body {
         -o-border-image:
                  -o-linear-gradient(top, white, #D4D8D1) 100% 1;
 }
+
+
 #topic-stream {
     height: 80px;
+}
+
+.panel-sparse {
+
+}
+
+.panel-sparse > .panel-heading {
+    border-bottom: 1px solid #ccc;
+}
+
+
+.panel-sparse table tbody tr td {
+    border-color: #ccc;
+}
+
+.progress {
+    margin-bottom: 0;
+}
+
+
+.panel-transparent {
+    background-color: rgba(0,0,0,0);
+}
+
+.panel-transparent .panel-body {
+    color: #A76E07;
+}
+
+
+tr.highlight {
+    background-color: rgba(255, 167, 0, 0.8);
 }
