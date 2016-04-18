@@ -18,3 +18,4 @@ whitenoise
 networkx
 gunicorn
 elasticsearch
+django-sslify>=0.2
