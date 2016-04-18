@@ -40,7 +40,6 @@ INSTALLED_APPS = (
     'haystack',
     'django_extensions',
     'rest_framework',
-    'concepts',
     'explorer',
 )
 
