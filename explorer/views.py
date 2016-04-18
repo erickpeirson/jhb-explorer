@@ -18,7 +18,6 @@ from math import log, floor
 cache = caches['default']
 
 import json
-import igraph
 import os
 
 from explorer.serializers import TopicSerializer
