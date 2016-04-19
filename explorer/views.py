@@ -958,7 +958,7 @@ def location(request, location_id):
 
 
 class JHBSearchView(FacetedSearchView):
-    facet_fields = ['authors', 'publication_date',]
+    facet_fields = ['authors', 'publication_date', 'result_type']
     queryset = SearchQuerySet()
     results_per_page = 40
     form_class = JHBSearchForm
@@ -981,7 +981,10 @@ class JHBSearchView(FacetedSearchView):
             'page_next': min(page.paginator._num_pages, page.number + 1),
             'page_last': page.paginator._num_pages,
         })
-        
+
+        import pprint
+        pprint.pprint(context)
+
         return context
 
 

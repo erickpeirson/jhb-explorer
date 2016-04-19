@@ -5,6 +5,7 @@ from explorer.models import *
 class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True, use_template=True)
     title = indexes.EdgeNgramField(model_attr='title')
+    result_type = indexes.FacetCharField()
     authors = indexes.FacetMultiValueField()
     topics = indexes.FacetMultiValueField()
     publication_date = indexes.FacetIntegerField(model_attr='publication_date')
@@ -16,6 +17,9 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_topics(self, instance):
         return []
 
+    def prepare_result_type(self, instance):
+        return instance.__class__.__name__
+
     def get_model(self):
         return Document
 
@@ -23,12 +27,16 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
 class TopicIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True, use_template=True)
     title = indexes.EdgeNgramField()
+    result_type = indexes.FacetCharField()
 
     def prepare_title(self, instance):
         """
         race races human racial hunt
         """
         return instance.__unicode__()
+
+    def prepare_result_type(self, instance):
+        return instance.__class__.__name__
 
     def get_model(self):
         return Topic
@@ -37,6 +45,7 @@ class TopicIndex(indexes.SearchIndex, indexes.Indexable):
 class AuthorIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     title = indexes.EdgeNgramField()
+    result_type = indexes.FacetCharField()
 
     def prepare(self, instance):
         data = super(AuthorIndex, self).prepare(instance)
@@ -48,6 +57,9 @@ class AuthorIndex(indexes.SearchIndex, indexes.Indexable):
         document += u'\n' + u'\n'.join([title for title in instance.works.all().values_list('title', flat=True)])
 
         return document.lower()
+
+    def prepare_result_type(self, instance):
+        return instance.__class__.__name__
 
     def prepare_title(self, instance):
         """
@@ -62,6 +74,10 @@ class AuthorIndex(indexes.SearchIndex, indexes.Indexable):
 class TaxonIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.EdgeNgramField(document=True)
     title = indexes.EdgeNgramField()
+    result_type = indexes.FacetCharField()
+
+    def prepare_result_type(self, instance):
+        return instance.__class__.__name__
 
     def prepare_text(self, instance):
         document = instance.scientific_name
@@ -84,6 +100,10 @@ class LocationIndex(indexes.SearchIndex, indexes.Indexable):
     """
     text = indexes.EdgeNgramField(document=True)
     title = indexes.EdgeNgramField()
+    result_type = indexes.FacetCharField()
+
+    def prepare_result_type(self, instance):
+        return instance.__class__.__name__
 
     def prepare_text(self, instance):
         return instance.label + u'\n' + instance.alternate_names

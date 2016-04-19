@@ -32,3 +32,7 @@ def permalink_image(doi):
         return static('/static/explorer/images/springer_logo.png')
     elif doi.startswith('10.2307'):
         return static('/static/explorer/images/jstor_logo.jpg')
+
+@register.filter
+def plus_one(num):
+    return int(num) + 1
