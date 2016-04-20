@@ -48,7 +48,6 @@ class JHBElasticsearch2SearchBackend(Elasticsearch2SearchBackend):
     }
 
     def search(self, query_string, **kwargs):
-        import pprint
         if len(query_string) == 0:
             return {
                 'results': [],
@@ -60,7 +59,6 @@ class JHBElasticsearch2SearchBackend(Elasticsearch2SearchBackend):
 
         search_kwargs = self.build_search_kwargs(query_string, **kwargs)
         search_kwargs['from'] = kwargs.get('start_offset', 0)
-        print pprint.pprint(search_kwargs)
 
         order_fields = set()
         for order in search_kwargs.get('sort', []):

@@ -358,7 +358,8 @@ $(document).ready(function() {
 
                     // Load and display the top 20 terms for this topic.
                     $.get('/topics/' + nodeData.id + '/?data=terms', {}, function(data) {
-                            $('#topic-details-documents-heading').html('Articles about <strong>' + data.label + '</strong> ('+ startYear +'\u2013'+ endYear +')');
+                            $('#topic-details-documents-heading-label').text(data.label);
+                            $('#topic-details-documents-heading-qualifier').text(startYear +'\u2013'+ endYear);
                             $('#topic-details-heading-1')
                                 .text(data.label);
 
@@ -373,8 +374,13 @@ $(document).ready(function() {
 
                     $.get('/topics/' + nodeData.id + '/?data=documents&start=' + startYear + '&end=' + endYear, {}, function(data) {
                         data.documents.forEach(function(doc) {
+                            console.log(doc);
                             $('#topic-details-documents')
-                                .append('<a class="topic-details-document list-group-item" href="/documents/'+ doc.id +'/?topic='+ nodeData.id +'"><span class="label label-primary">' + doc.pubdate + '</span> '+ doc.title +'</a>');
+                                .append('<tr class="h6">' +
+                                    '<td>' + doc.pubdate + '</td>' +
+                                    '<td><a class="" href="/documents/'+ doc.id +'/?topic='+ nodeData.id +'">'+ doc.title +'</a></td>'+
+                                    '<td><div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' + doc.weight + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + doc.weight + '%;"><span class="sr-only">' + doc.weight + '%</span></div></div></td>' +
+                                    '</tr>');
                         });
                     });
                 }
@@ -394,7 +400,8 @@ $(document).ready(function() {
 
                     $('#topic-details-documents').empty();
 
-                    $('#topic-details-documents-heading').empty();
+                    $('#topic-details-documents-heading-label').empty();
+                    $('#topic-details-documents-heading-qualifier').empty();
                 }
 
                 var clearSelectedTopics = function() {

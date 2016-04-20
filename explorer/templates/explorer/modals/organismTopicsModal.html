@@ -1,0 +1,36 @@
+{% load jhb_tags %}
+
+<div class="modal fade" id="organismTopicsModal" tabindex="-1" role="dialog" aria-labelledby="organismTopicsModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="organismTopicsModalLabel">Related Topics</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The topics listed in this table are strongly correlated with {{ taxon|format_taxon_name|safe }}. In
+                    other words, they tend to occur frequently on the same pages on which references to {{ taxon|format_taxon_name|safe }}
+                    occur.
+                </p>
+                <p>
+                    The blue horizontal bars show the relative strength of the correlation between each respective topic and
+                    references to {{ taxon|format_taxon_name|safe }}.
+                </p>
+                <hr />
+                <h4 class="h4">Methodological Notes</h4>
+                <p>
+                    Named Entity Recognition performed with <a href="http://linnaeus.sourceforge.net/">LINNAEUS</a>. Taxonomic
+                    information and linked data retrieved from the <a href="http://www.ncbi.nlm.nih.gov/guide/taxonomy/">NCBI
+                    Taxonomy database</a>. Visualization developed in <a href="https://d3js.org/">D3.js</a>.
+                </p>
+                <p>
+                    <a href="https://www.ncbi.nlm.nih.gov/home/about/policies.shtml">NCBI's Disclaimer and Copyright notice</a>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

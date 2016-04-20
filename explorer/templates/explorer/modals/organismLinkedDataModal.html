@@ -1,0 +1,39 @@
+{% load jhb_tags %}
+
+<div class="modal fade" id="organismLinkedDataModal" tabindex="-1" role="dialog" aria-labelledby="organismLinkedDataModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="organismLinkedDataModalLabel">Linked Data</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    In the broadest sense, the term <strong>linked data</strong> refers to practices and technologies that
+                    make it easier to find related resources on the internet. The
+                    <a href="http://www.ncbi.nlm.nih.gov/projects/linkout/">NCBI LinkOut</a> service provides information about
+                    online resources external to NCBI that are related to specific NCBI database entries (in this case, taxa in
+                    the NCBI Taxonomy database).
+                </p>
+                <p>
+                    The Linked Data panel in the lower right section of the page shows the resources that we retrieved for
+                    {{ taxon|format_taxon_name|safe }}, ranging from gene sequence data to phylogenetic trees.
+                </p>
+
+                <hr />
+                <h4 class="h4">Methodological Notes</h4>
+                <p>
+                    Named Entity Recognition performed with <a href="http://linnaeus.sourceforge.net/">LINNAEUS</a>. Taxonomic
+                    information and linked data retrieved from the <a href="http://www.ncbi.nlm.nih.gov/guide/taxonomy/">NCBI
+                    Taxonomy database</a>. Visualization developed in <a href="https://d3js.org/">D3.js</a>.
+                </p>
+                <p>
+                    <a href="https://www.ncbi.nlm.nih.gov/home/about/policies.shtml">NCBI's Disclaimer and Copyright notice</a>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

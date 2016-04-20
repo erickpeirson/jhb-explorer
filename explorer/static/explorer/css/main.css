@@ -209,3 +209,10 @@ tr.highlight {
     width: 100%;
     text-align: left;
 }
+
+
+
+/* Search */
+a.active-facet-label:hover {
+    text-decoration: line-through;
+}

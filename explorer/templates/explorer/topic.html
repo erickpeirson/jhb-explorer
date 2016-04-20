@@ -331,7 +331,7 @@ $(document).ready(function() {
     <div class="col-sm-4">
         <div class="panel panel-transparent">
             <div class="panel-heading">
-                <span class="h3">{{ topic }}</span>
+                <span class="h4">{{ topic }}</span>
                 <span class="pull-right">
                     <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#topicStreamModal">
                         <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
@@ -346,37 +346,7 @@ $(document).ready(function() {
                 </ul>
             </div>
         </div>
-        {% if topic_colocates|length > 0 %}
-        <div class="panel panel-sparse">
-            <div class="panel-heading">
-                <span class="h3">Related Topics
-                    <span class="pull-right">
-                        <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
-                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
-                        </button>
-                    </span>
-                </span>
-            </div>
-            <div style="max-height: 300px; overflow-y: scroll;">
-                <table class="table table-condensed">
-                    <tbody>
-                        {% for topic, colocation in topic_colocates %}
-                        <tr>
-                            <td><a href="{% url 'topic_detail' topic.id %}">{{ topic.for_display }}</a></td>
-                            <td class="col-sm-3">
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{ colocation.weight|multiply:400 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ colocation.weight|multiply:400 }}%;">
-                                        <span class="sr-only">{{ colocation.weight }} nPMI</span>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        {% endif %}
+
 
 
     </div>
@@ -394,37 +364,78 @@ $(document).ready(function() {
                             <td class="col-xs-2">Topic</td>
                         </tr>
                     </thead>
-                    <tbody id="assignments">
+                    <tbody id="assignments" class="h6">
                     </tbody>
                 </table>
             </div>
         </div>
+        <div class="row">
 
-        <!-- Authors -->
-        <div class="panel panel-sparse">
-            <div class="panel-heading">
-                <span class="h4">Authors who write about <strong><em>{{ topic.for_display }}</em></strong></span>
+            <!-- Authors -->
+            <div class="col-sm-6">
+                <div class="panel panel-sparse">
+                    <div class="panel-heading">
+                        <span class="h4">Related Authors</span>
+                    </div>
+                    <div  style="max-height: 250px; overflow-y: scroll;">
+                        <table class="table table-condensed small-text">
+                            <tbody id="assignments">
+                                {% for author_id, weight, author_name in authors %}
+                                <tr class="h6">
+                                    <td class="col-xs-8">
+                                        <a href="{% url "author_detail" author_id %}">{{ author_name }}</a>
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="">
+                                            <div class="progress-bar" role="progressbar" aria-valuenow="{{ weight }}" aria-valuemin="0" aria-valuemax="1" style="width: {{ weight }}%;">
+                                                <span class="sr-only">{{ weight }}%</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div  style="max-height: 200px; overflow-y: scroll;">
-                <table class="table table-condensed small-text">
-                    <tbody id="assignments">
-                        {% for author_id, weight, author_name in authors %}
-                        <tr>
-                            <td class="col-xs-8">
-                                <a href="{% url "author_detail" author_id %}">{{ author_name }}</a>
-                            </td>
-                            <td>
-                                <div class="progress" style="">
-                                    <div class="progress-bar" role="progressbar" aria-valuenow="{{ weight }}" aria-valuemin="0" aria-valuemax="1" style="width: {{ weight }}%;">
-                                        <span class="sr-only">{{ weight }}%</span>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+
+            <!-- Related topics -->
+            {% if topic_colocates|length > 0 %}
+            <div class="col-sm-6">
+                <div class="panel panel-sparse">
+                    <div class="panel-heading">
+                        <span class="h4">Related Topics
+                            <span class="pull-right">
+                                <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
+                                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+                                </button>
+                            </span>
+                        </span>
+                    </div>
+                    <div style="max-height: 250px; overflow-y: scroll;">
+                        <table class="table table-condensed">
+                            <tbody>
+                                {% for topic, colocation in topic_colocates %}
+                                <tr class="h6">
+                                    <td><a href="{% url 'topic_detail' topic.id %}">{{ topic.for_display }}</a></td>
+                                    <td class="col-sm-3">
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar" aria-valuenow="{{ colocation.weight|multiply:400 }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ colocation.weight|multiply:400 }}%;">
+                                                <span class="sr-only">{{ colocation.weight }} nPMI</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
+            {% endif %}
+
+
         </div>
     </div>
 </div>

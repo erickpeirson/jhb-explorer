@@ -1,3 +1,5 @@
+{% load jhb_tags %}
+
 <div class="modal fade" id="organismDetailModal" tabindex="-1" role="dialog" aria-labelledby="organismDetailModal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -14,27 +16,33 @@
                     and on the quality of the texts.
                 </p>
                 <p>
-                    The visualizations on this page depict references to organisms that were detected using an NER
-                    model called LINNAEUS. LINNAEUS was trained on abstracts in the PubMed database, and is unusual
+                    The visualizations on this page depict references to {{ taxon|format_taxon_name|safe }} that were detected
+                    using an NER model called LINNAEUS. LINNAEUS was trained on abstracts in the PubMed database, and is unusual
                     among NER models in that it also tries to disambiguate the entities that it finds. In other words,
                     it identifies not merely <strong>that</strong> a passage refers to an organism, but also <strong>
                     which specific organism</strong> is being discussed. LINNAEUS' vocabulary of organisms is the NCBI
                     Taxonomy database, which means that we can retrieve additional information about each organism
-                    discussed in <em>JHB</em> using the NCBI Entrez APIs.
+                    discussed in <em>JHB</em> using the <a href="http://www.ncbi.nlm.nih.gov/books/NBK25501/">NCBI Entrez APIs</a>.
                 </p>
                 <p>
                     The <strong>stream view of the top of the page</strong> shows the relative number of references to this taxon
                     (and its sub-taxa) over time. <strong>On the left</strong>, the articles in which references to this taxon
                     are listed by reference count in descending order. <strong>On the right</strong> are listed topics with which
-                    this taxon is highly correlated (i.e. occur frequently together on the same page).
+                    this taxon is highly correlated (i.e. occur frequently together on the same pages).
                 </p>
                 <p>
-                    The <strong>cladogram browser at the bottom of the page</strong> allows you to find other related taxa based on
-                    the taxonomic relationships in the NCBI Taxonomy database. Note that this is not a phylogenetic
-                    tree: the lengths of the branches are arbitrary, and nodes at each level are often not of the
-                    same rank. In cases where several nested ranks contain only a single terminal node, intermediate
-                    ranks may be excluded entirely. This visualization is intended merely as an aid for navigating
-                    the <em>JHB</em>.
+                    For more information about the components on this page, look for the <button type="button" class="btn btn-default btn-sm"><span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span></button>
+                    buttons.
+                </p>
+                <hr />
+                <h4 class="h4">Methodological Notes</h4>
+                <p>
+                    Named Entity Recognition performed with <a href="http://linnaeus.sourceforge.net/">LINNAEUS</a>. Taxonomic
+                    information and linked data retrieved from the <a href="http://www.ncbi.nlm.nih.gov/guide/taxonomy/">NCBI
+                    Taxonomy database</a>.
+                </p>
+                <p>
+                    <a href="https://www.ncbi.nlm.nih.gov/home/about/policies.shtml">NCBI's Disclaimer and Copyright notice</a>
                 </p>
             </div>
             <div class="modal-footer">

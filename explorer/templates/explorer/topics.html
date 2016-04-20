@@ -12,7 +12,7 @@
 <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.js'></script>
 <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.css' rel='stylesheet' />
 
-<script src="{% static 'explorer/js/topics.js' %}"></script>
+<script src="{% static 'explorer/js/views/topics.js' %}"></script>
 
 {% endblock %}
 
@@ -26,7 +26,9 @@
         </button>
     </div>
 
+    <!-- First row -->
     <div class="row">
+        <!-- Topic network visualization -->
         <div class="col-sm-7">
             <div class="panel" id="networkVisContainer" style="padding: 1px;">
                 <div id="cyTopics" style="height: 300px;"></div>
@@ -35,77 +37,57 @@
                     details about that topic.
                 </p>
             </div>
-
-            <div class="panel topic-details" style="visibility: hidden;">
-                <div class="panel-heading h4" id="topic-details-documents-heading"></div>
-                <ul class="list-group" id="topic-details-documents" style=" max-height: 200px;">
-                </ul>
-            </div>
-
         </div>
+
+        <!-- Topic terms cluster -->
         <div class="col-sm-5">
-            <div class="panel panel-transparent topic-details" style="visibility: hidden; min-height: 200px;">
+            <div class="panel panel-transparent topic-details" style="visibility: hidden;">
                 <div class="panel-heading clearfix">
                     <a id="topic-details-1-link" type="button" href="" class="pull-right" aria-label="Details"><span class="h4" id="topic-details-heading-1"></span></a>
-                    <!-- <span class="pull-right btn-group">
-                        <a id="topic-details-1-link" type="button" href="" class="btn btn-default btn-xs" aria-label="Details">
-                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span> Details
-                        </a>
-                    </span> -->
                 </div>
-                <div class="panel-body" id="topic-details-terms-1" style="text-align: center;">
+                <div class="panel-body" id="topic-details-terms-1" style="text-align: center; vertical-align: middle;">
                     <ul id="topic-details-terms-1-list" class="topic-details-terms-list">
                     </ul>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Second row -->
+    <div class="row">
+        <div class="col-sm-7">
+            <!-- Articles that contain topic. -->
+            <div class="panel topic-details" style="visibility: hidden;">
+                <div class="panel-heading h4" id="topic-details-documents-heading">
+                    Articles about <strong id="topic-details-documents-heading-label"></strong> (<span id="topic-details-documents-heading-qualifier"></span>)
+                </div>
+                <div style="max-height: 250px; overflow-y: scroll;">
+                    <table class="table small-text table-condensed">
+                        <thead>
+                            <tr>
+                                <td class="col-sm-2">Date</td>
+                                <td>Title</td>
+                                <td class="col-sm-2">Topic</td>
+                            </tr>
+                        </thead>
+                        <tbody id="topic-details-documents">
+                        </tbody>
+                    </table>
+                </div>
+                <!-- <ul class="list-group h6"  style=" max-height: 200px;">
+                </ul> -->
+            </div>
+        </div>
+        <div class="col-sm-5">
+            <!-- Geographic visualization. -->
             <div class="panel">
-                <div id="map" style="height: 200px;"></div>
+                <div id="map" style="height: 300px;"></div>
             </div>
         </div>
     </div>
-    <div class="row">
 
-    </div>
-
-    <script>
-
-
-
-    </script>
     {% endblock %}
 
     {% block modals %}
-
-    <!-- Modal -->
-    <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="myModalLabel">The Topic Co-Location Graph</h4>
-                </div>
-                <div class="modal-body">
-                    <p>
-                        This graph shows all of the topics in the JHB Explorer <a href="#" data-toggle="tooltip" data-placement="top" title="What's that?">topic model</a>,
-                        and how those topics co-occur across the <em>Journal of the History of Biology</em> corpus.
-                    </p>
-                    <p>
-                        Each topic is represented by a bubble, known to graph-theory nerds as a <strong>"node"</strong>. If you click on a node, information about the
-                        correspoding topic will be shown at right. Each line between a pair of nodes is known as an <strong>"edge"</strong>. If there is an edge between
-                        two nodes, that means that the two corresponding topics frequently occur together (they are <strong>"co-located"</strong>) on pages in <em>JHB</em>.
-                    </p>
-                    <p>
-                        The width and opacity of each edge corresponds to the <strong><a href="#"  data-toggle="tooltip" data-placement="top" title="Huh?">normalized
-                        pointwise mutual information (nPMI)</a></strong> statistic for the two corresponding topics. The higher the nPMI, the more likely it is that
-                        the listed topic and the current topic are related in some way. An edge is drawn between two topics only if their nPMI is in the upper 98th
-                        percentile. nPMI is more useful than simply looking at how frequently two topics occur together, because it takes into account the probability
-                        that two topics will occur together simply by chance (e.g. because one topic is very prominent in the corpus).
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
+        {% include "explorer/modals/topicsModal.html" %}
     {% endblock %}

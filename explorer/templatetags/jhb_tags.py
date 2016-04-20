@@ -12,9 +12,6 @@ def format_taxon_name(taxon):
         orgString += '<em>' + taxon.scientific_name + '</em>';
     else:
         orgString += taxon.scientific_name;
-
-    if taxon.rank:
-         orgString += ' <span class="label label-default">' + taxon.rank + '</span>';
     return orgString
 
 
@@ -25,6 +22,10 @@ def permalink(doi):
     elif doi.startswith('10.2307'):
         return u'http://www.jstor.org/stable/%s' % doi
 
+@register.filter
+def taxonomy_permalink(taxon_id):
+    return u'http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=%i' % taxon_id
+
 
 @register.filter
 def permalink_image(doi):
@@ -32,6 +33,7 @@ def permalink_image(doi):
         return static('/static/explorer/images/springer_logo.png')
     elif doi.startswith('10.2307'):
         return static('/static/explorer/images/jstor_logo.jpg')
+
 
 @register.filter
 def plus_one(num):

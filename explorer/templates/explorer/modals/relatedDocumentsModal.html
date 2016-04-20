@@ -1,0 +1,28 @@
+<div class="modal fade" id="relatedDocumentsModal" tabindex="-1" role="dialog" aria-labelledby="relatedDocumentsModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="relatedDocumentsModalLabel">Related Documents</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The <a href="{% url "topics" %}">topic model</a> at the heart of this online exhibit describes how latent
+                    themes&mdash;observed indirectly as clusters of co-occurring words&mdash;are distributed across thousands
+                    of pages of articles in the <em>Journal of the History of Biology</em>. The excitement for LDA topic modeling
+                    in digital humanities circles has obscured the fact that these models were designed primarily for optimizing
+                    online search engines, and not for scholarly research! In the <strong>Related Articles</strong> panel, we
+                    use the distribution of latent topics as a way to cluster together articles that contain similar themes.
+                </p>
+                <p>
+                    The top 20 articles most similar to <strong>{{ document.title }}</strong> are shown in order of descending
+                    similarity. Beside each article is a series of colored boxes. These boxes indicate which topics are strongly
+                    shared that article and the current article. Hover over the box to see the label for that topic.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

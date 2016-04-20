@@ -1,6 +1,6 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from explorer import views, forms
+from explorer.views.search import JHBSearchView, autocomplete
 
 # from haystack.query import SearchQuerySet
 #
@@ -8,22 +8,16 @@ from explorer import views, forms
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', views.home, name='home'),
-    url(r'^topics/$', views.topics, name='topics'),
-    url(r'^organisms/$', views.organisms, name='organisms'),
-    url(r'^organisms/(?P<taxon_id>[0-9]+)/$', views.organism, name='organism_detail'),
-    url(r'^topics/(?P<topic_id>[0-9]+)/$', views.topic, name='topic_detail'),
-    url(r'^documents/$', views.documents, name='documents'),
-    url(r'^documents/(?P<document_id>[0-9]+)/$', views.document, name='document_detail'),
-    url(r'^documents/(?P<document_doi>[0-9/\.]+/$)', views.document_by_doi, name='document_by_doi'),
-    url(r'^entities/$', views.entities, name='entities'),
-    url(r'^entities/(?P<entity_id>[0-9]+)/$', views.entity, name='entity_detail'),
-    url(r'^terms/$', views.terms, name='terms'),
-    url(r'^terms/(?P<term_id>[0-9]+)/$', views.entity, name='term_detail'),
-    url(r'^authors/$', views.authors, name='entities'),
-    url(r'^authors/(?P<author_id>[0-9]+)/$', views.author, name='author_detail'),
-    url(r'^locations/$', views.locations, name='locations'),
-    url(r'^locations/(?P<location_id>[0-9]+)/$', views.location, name='location_detail'),
-    url(r'^(?i)search/', views.JHBSearchView.as_view(), name='search'),
-    url(r'^autocomplete/', views.autocomplete, name='autocomplete')
+    url(r'^$', 'explorer.views.home', name='home'),
+    url(r'^topics/$', 'explorer.views.topics.topics', name='topics'),
+    url(r'^organisms/$', 'explorer.views.organisms.organisms', name='organisms'),
+    url(r'^organisms/(?P<taxon_id>[0-9]+)/$', 'explorer.views.organisms.organism', name='organism_detail'),
+    url(r'^topics/(?P<topic_id>[0-9]+)/$', 'explorer.views.topics.topic', name='topic_detail'),
+    url(r'^documents/(?P<document_id>[0-9]+)/$', 'explorer.views.documents.document', name='document_detail'),
+    url(r'^documents/(?P<document_doi>[0-9/\.]+/$)', 'explorer.views.documents.document_by_doi', name='document_by_doi'),
+    url(r'^authors/(?P<author_id>[0-9]+)/$', 'explorer.views.authors.author', name='author_detail'),
+    url(r'^locations/$', 'explorer.views.locations.locations', name='locations'),
+    url(r'^locations/(?P<location_id>[0-9]+)/$', 'explorer.views.locations.location', name='location_detail'),
+    url(r'^(?i)search/', JHBSearchView.as_view(), name='search'),
+    url(r'^autocomplete/', autocomplete, name='autocomplete')
 ]

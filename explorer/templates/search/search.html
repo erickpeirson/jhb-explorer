@@ -20,7 +20,13 @@
                         <button type="submit" class="btn" id="querysubmit"><i class="fa fa-search"></i> Go</button>
                     </span>
                </div>
-
+               {% if active_facets %}
+               <div class="well well-sm">
+                   {% for facet_type, facet_value, facet_remove in active_facets %}
+                   <a href="{{ facet_remove }}" class="label label-default active-facet-label">{{ facet_type }}: {{ facet_value }}</a>
+                   {% endfor %}
+               </div>
+               {% endif %}
             </form>
         </div>
     </div>
@@ -29,66 +35,108 @@
 
 {% if query %}
 <div class="container-fluid">
-    <!-- Search results. -->
-    <div class="col-sm-8">
-        <div class="h4 text-warning">Showing results {{ result_start }} - {{ result_end}} of {{ result_total }}
-            {# Only show next/previous options if there is more than one page of results. #}
-            {% if result_total > page_obj.paginator.per_page %}
-            <span class="pull-right"><a href="?q={{query}}&page={{ page_previous }}"{% if page_current <= 1 %} style="visibility: hidden;"{% endif %}>&#171; Previous</a> | <a href="?q={{query}}&page={{ page_next }}" {% if page_current >= page_last %} style="visibility: hidden;"{% endif %}>Next &#187;</a></span>
+    <div class="h4 text-warning clearfix">Showing results {{ result_start }} - {{ result_end}} of {{ result_total }}
+        {# Only show next/previous options if there is more than one page of results. #}
+        {% if result_total > page_obj.paginator.per_page %}
+        <span class="pull-right"><a href="{{ facet_base_url }}&amp;page={{ page_previous }}"{% if page_current <= 1 %} style="visibility: hidden;"{% endif %}>&#171; Previous</a> | <a href="{{facet_base_url}}&amp;page={{ page_next }}" {% if page_current >= page_last %} style="visibility: hidden;"{% endif %}>Next &#187;</a></span>
+        {% endif %}
+    </div>
+    <div class="row">
+        <!-- Facets. -->
+        <div class="col-sm-4">
+
+            {% if facets.fields.publication_date|length > 0 %}
+
+            <div class="panel panel-sparse">
+                <div class="panel-heading clearfix">
+                    <span class="h4">Publication Date</span>
+                    <span class="pull-right">
+                        <span id="pubdate-start" name="pubdate_start"></span> to <span id="pubdate-end" name="pubdate_end"></span>
+                    </span>
+                </div>
+                <div class="panel-body clearfix" style="vertical-align: middle;">
+
+                    <div id="publication-date-range" style="margin-top: 5px; width: 80%; display: inline-block;"></div>
+                    <div class="pull-right">
+                        <a id="publication-date-link" class="button btn-lg" href="">
+                            <i class="glyphicon glyphicon-check"></i>
+                        </a>
+                    </div>
+
+                        <script>
+                        $(function() {
+                            var baseURL = "{{ years_base_url}}";
+                            var start, end;
+
+                            $( "#publication-date-range" ).slider({
+                                range: true,
+                                min: 1968,
+                                max: 2016,
+                                values: [{{minYear}}, {{maxYear}}],
+                                slide: function(event, ui) {
+                                    start = ui.values[0];
+                                    end = ui.values[1];
+                                    $("#pubdate-start").text(start);
+                                    $("#pubdate-end").text(end);
+                                    $("#publication-date-link").attr("href", baseURL + "&publication_date__start=" + start + "&publication_date__end=" + end);
+                                }
+                            });
+                            start = $("#publication-date-range").slider("values", 0);
+                            end = $("#publication-date-range").slider("values", 1);
+                            $("#pubdate-start").text(start);
+                            $("#pubdate-end").text(end);
+                            $("#publication-date-link").attr("href", baseURL + "&publication_date__start=" + start + "&publication_date__end=" + end);
+                        });
+                          </script>
+
+                </div>
+
+            </div>
             {% endif %}
-        </div>
-        <ul class="list-group">
-        {% for result in page_obj.object_list %}
-            {# Result icon and coloring is determined by the result type (e.g. Author, Document, Location). #}
-            <a href="{{ result.object.get_absolute_url }}" class="list-group-item {% if result.model_name == 'document' %}list-group-item-primary{% elif result.model_name == 'author' %}list-group-item-warning{%  elif result.model_name == 'topic' %}list-group-item-info{%  elif result.model_name == 'taxon' %}list-group-item-success{%  elif result.model_name == 'location' %}list-group-item-danger{% endif %}">
-                <i class="glyphicon {% if result.model_name == 'document' %}glyphicon-book{% elif result.model_name == 'author' %}glyphicon-user{%  elif result.model_name == 'topic' %}glyphicon-asterisk{%  elif result.model_name == 'taxon' %}glyphicon-leaf{%  elif result.model_name == 'location' %}glyphicon glyphicon-globe{% endif %}"></i>
-                <span class="h5">{% if result.model_name == 'taxon' %}<em>{% endif %}{{ result.title }}{% if result.model_name == 'taxon' %}</em>{% endif %}</span>
-            </a>
-        {% endfor %}
-        </ul>
-    </div>
 
-    <!-- Facets. -->
-    <div class="col-sm-4">
-        <div class="panel panel-sparse">
+            <div class="panel panel-sparse">
+                <ul class="list-group">
+                    {% for result_type, count in facets.fields.result_type %}
+                    <a href="{{ facet_base_url }}&amp;selected_facets=result_type:{{ result_type }}" class="list-group-item list-group-item-{% if result_type == 'Document' %}primary{% elif result_type == 'Author' %}warning{% elif result_type == 'Topic' %}info{% elif result_type == 'Taxon' %}success{% elif result_type == 'Location' %}danger{% endif %}">
+                        <i class="glyphicon glyphicon-{% if result_type == 'Document' %}book{% elif result_type == 'Author' %}user{% elif result_type == 'Topic' %}asterisk{% elif result_type == 'Taxon' %}leaf{% elif result_type == 'Location' %}globe{% endif %}"></i> {{ result_type }} <span class="badge">{{ count }}</span>
+                    </a>
+                    {% endfor %}
+
+                </ul>
+            </div>
+
+            {% if facets.fields.authors|length > 0 %}
+            <div class="panel panel-sparse">
+                <div class="panel-heading">
+                    <span class="h4">Authors</span>
+                </div>
+                <ul class="list-group">
+                    {% for author, count in facets.fields.authors %}
+
+                    <a class="list-group-item" href="{{ facet_base_url }}&amp;selected_facets=authors:{{ author }}">{{ author }} <span class="badge">{{ count }}</span></a>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+
+        </div>
+
+        <!-- Search results. -->
+        <div class="col-sm-8">
             <ul class="list-group">
-                {% for result_type, count in facets.fields.result_type %}
-                <a href="{{ request.get_full_path }}&amp;selected_facets=result_type:{{ result_type }}" class="list-group-item list-group-item-{% if result_type == 'Document' %}primary{% elif result_type == 'Author' %}warning{% elif result_type == 'Topic' %}info{% elif result_type == 'Taxon' %}success{% elif result_type == 'Location' %}danger{% endif %}">
-                    <i class="glyphicon glyphicon-{% if result_type == 'Document' %}book{% elif result_type == 'Author' %}user{% elif result_type == 'Topic' %}asterisk{% elif result_type == 'Taxon' %}leaf{% elif result_type == 'Location' %}globe{% endif %}"></i> {{ result_type }} <span class="badge">{{ count }}</span>
+            {% for result in page_obj.object_list %}
+                {# Result icon and coloring is determined by the result type (e.g. Author, Document, Location). #}
+                <a href="{{ result.object.get_absolute_url }}" class="list-group-item {% if result.model_name == 'document' %}list-group-item-primary{% elif result.model_name == 'author' %}list-group-item-warning{%  elif result.model_name == 'topic' %}list-group-item-info{%  elif result.model_name == 'taxon' %}list-group-item-success{%  elif result.model_name == 'location' %}list-group-item-danger{% endif %}">
+                    <i class="glyphicon {% if result.model_name == 'document' %}glyphicon-book{% elif result.model_name == 'author' %}glyphicon-user{%  elif result.model_name == 'topic' %}glyphicon-asterisk{%  elif result.model_name == 'taxon' %}glyphicon-leaf{%  elif result.model_name == 'location' %}glyphicon glyphicon-globe{% endif %}"></i>
+                    <span class="h5">{% if result.model_name == 'taxon' %}<em>{% endif %}{{ result.title }}{% if result.model_name == 'taxon' %}</em>{% endif %}</span>
                 </a>
-                {% endfor %}
-
+            {% endfor %}
             </ul>
         </div>
 
-        {% if facets.fields.authors|length > 0 %}
-        <div class="panel panel-sparse">
-            <div class="panel-heading">
-                <span class="h4">Authors</span>
-            </div>
-            <ul class="list-group">
-                {% for author, count in facets.fields.authors %}
-
-                <a class="list-group-item" href="{{ request.get_full_path }}&amp;selected_facets=authors:{{ author }}">{{ author }} <span class="badge">{{ count }}</span></a>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
-
-        {% if facets.fields.publication_date|length > 0 %}
-        <div class="panel panel-sparse">
-            <div class="panel-heading">
-                <span class="h4">Publication Date</span>
-            </div>
-            <ul class="list-group">
-                {% for date, count in facets.fields.publication_date %}
-
-                <a class="list-group-item" href="{{ request.get_full_path }}&amp;selected_facets=publication_date__gte:{{ date }}&amp;selected_facets=publication_date__lt:{{ date|plus_one }}">{{ date }} <span class="badge">{{ count }}</span></a>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
     </div>
+
 </div>
 
 {% endif %}

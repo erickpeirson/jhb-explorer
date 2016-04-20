@@ -5,11 +5,10 @@
 
 {% block content %}
 <style>
-#topic-details-swatch {
+.topic-details-swatch {
     display: inline-block;
     height: 20px;
     width: 20px;
-
 }
 </style>
 
@@ -33,13 +32,9 @@
                         <!-- </span> -->
                     </div>
                     <div class="h4">{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</div>
-
                         {% for author in document.authors.all %}
-
                             <a href="{% url "author_detail" author.id  %}">{{ author.forename.title }} {{ author.surname.title }}</a>
-                        
                         {%endfor%}
-
                 </div>
             </div>
 
@@ -48,7 +43,7 @@
             <div class="panel panel-transparent" id="topic-details" style="visibility: hidden;">
                 <div class="panel-heading clearfix" id="topic-details-heading">
                     <span class="h4">
-                        <img class="img img-rounded" id="topic-details-swatch"></img>
+                        <img class="img img-rounded topic-details-swatch" id="topic-details-swatch"></img>
                         <a id="topic-details-link"><span id="topic-details-title"></span></a>
                     </span>
                 </div>
@@ -59,21 +54,19 @@
 
             </div>
         </div>
-
-
     </div>
 
     <div class="row">
         {% if document.cites.count > 0 %}
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <div class="panel panel-sparse">
                 <div class="panel-heading">
                     <span class="h4">Cites (within <em>JHB</em>)</span>
                 </div>
                 <!-- <div class="panel-body"> -->
-                    <ul class="list-group">
+                    <ul class="list-group h6">
                         {% for citation in document.cites.all %}
-                        <a href="{% url "document_detail" citation.id %}" class="list-group-item small-text">{{ citation.title }} ({{ citation.publication_date }})</a>
+                        <a href="{% url "document_detail" citation.id %}" class="list-group-item">{{ citation.title }} ({{ citation.publication_date }})</a>
                         {% endfor %}
                     </ul>
                 <!-- </div> -->
@@ -81,15 +74,15 @@
         </div>
         {% endif %}
         {% if document.cited_by.count > 0 %}
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <div class="panel panel-sparse">
                 <div class="panel-heading">
                     <span class="h4">Cited by (within <em>JHB</em>)</span>
                 </div>
                 <!-- <div class="panel-body"> -->
-                    <ul class="list-group">
+                    <ul class="list-group h6">
                         {% for citation in document.cited_by.all %}
-                        <a href="{% url "document_detail" citation.id %}" class="list-group-item small-text">{{ citation.title }} ({{ citation.publication_date }})</a>
+                        <a href="{% url "document_detail" citation.id %}" class="list-group-item">{{ citation.title }} ({{ citation.publication_date }})</a>
                         {% endfor %}
                     </ul>
                 <!-- </div> -->
@@ -97,192 +90,58 @@
         </div>
         {% endif %}
 
-        <div class="col-sm-4">
-
-            {% if document.taxon_occurrences.count > 0 %}
+        {# Taxonomic references in this document. #}
+        {% if document.taxon_occurrences.count > 0 %}
+        <div class="col-sm-3">
             <div class="panel panel-sparse">
-                <div class="panel-heading">
+                <div class="panel-heading clearfix">
                     <span class="h4">Organisms</span>
+                    <button type="button" class="btn btn-default btn-sm pull-right" aria-label="Info" data-toggle="modal" data-target="#documentOrganismModal">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="What am I looking at?"></span>
+                    </button>
                 </div>
-                    <ul class="list-group" style="max-height: 200px; overflow-y:scroll;">
-                        {% for occurrence in document.taxon_occurrences.all %}
-                        <a href="{% url "organism_detail" occurrence.taxon.id %}" class="list-group-item"><em>{{ occurrence.taxon.scientific_name }}</em> {% if occurrence.taxon.division %} <span class="label label-primary">{{ occurrence.taxon.division }}</span>{% endif %}</a>
-                        {% endfor %}
-                    </ul>
-
+                <ul class="list-group h6" style="max-height: 200px; overflow-y: scroll;">
+                    {% for occurrence in document.taxon_occurrences.all %}
+                    <a href="{% url "organism_detail" occurrence.taxon.id %}" class="list-group-item"><em>{{ occurrence.taxon.scientific_name }}</em> {% if occurrence.taxon.division %} <span class="label label-primary">{{ occurrence.taxon.division }}</span>{% endif %}</a>
+                    {% endfor %}
+                </ul>
             </div>
+        </div>
+        {% endif %}
 
-            {% endif %}
+        {# Related documents (via the topic model). #}
+        <div class="col-sm-3">
+            <div class="panel panel-sparse">
+                <div class="panel-heading clearfix">
+                    <span class="h4">Related Articles</span>
+                    <button type="button" class="btn btn-default btn-sm pull-right" aria-label="Info" data-toggle="modal" data-target="#relatedDocumentsModal">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="What am I looking at?"></span>
+                    </button>
+                </div>
+                <ul class="list-group h6" style="max-height: 200px; overflow-y:scroll;">
+                    {% for document_id, document_title, document_date, weight, topics in related_documents %}
+                    <a href="{% url "document_detail" document_id %}" class="list-group-item">{{document_title}} ({{document_date}}) {% for topic_label, topic_id in topics %}<img class="img img-rounded topic-details-swatch swatch-static" id="topic-{{topic_id}}-swatch}" title='{{ topic_label }}' data-toggle='tooltip' data-container='body'></img>{% endfor %}</a>
+                    {% endfor %}
+                </ul>
+            </div>
+            <script>
+            $('[data-toggle=tooltip]').tooltip();
+            </script>
         </div>
     </div>
 </div>
 
-<div class="container-fluid">
-    <div class="row">
 
-    </div>
-</div>
+{% include "explorer/modals/relatedDocumentsModal.html" %}
+{% include "explorer/modals/documentOrganismModal.html" %}
 
 <script>
-var initialTopic;
+var initialTopic,
+    topics_url = '{% url "topics" %}';
+
 {% if initialTopic %}
 initialTopic = {{ initialTopic }};
 {% endif %}
-
-var normalize_weight = function(weight, max_weight) {
-    return Math.max(20, 3*weight/max_weight);
-}
-
-var color = d3.scale.ordinal()
-    .range(["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
-                 "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
-                 "#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788"]);
-
-
-    var redraw = function (callback) {
-        var margin = {top: 0, right: 0, bottom: 0, left: 0},
-            width = parseInt(d3.select('#topic-barchart').style('width'), 10) - margin.left - margin.right,
-            height = 150 - margin.top - margin.bottom;
-
-        var x = d3.scale.ordinal()
-            .rangeRoundBands([0, width], .1);
-
-        var y = d3.scale.linear()
-            .rangeRound([height, 0]);
-
-
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom");
-
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left")
-            .tickFormat(d3.format(".2s"));
-
-        var svg = d3.select("#topic-barchart").append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-          .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-        d3.json('?data=chart', function(error, data) {
-          if (error) throw error;
-
-          color.domain(data.allTopics);
-
-          var p = 0;
-          data.weights.forEach(function(d) {
-                var y0 = 0;
-                d.topics = color.domain().map(function(name) {
-                    return {
-                        name: name,
-                        y0: y0,
-                        y1: y0 += +d[name],
-                    };
-                });
-
-
-                d.total = d.topics[d.topics.length - 1].y1;
-                d.page = data.pages[p];
-                p += 1
-          });
-
-          x.domain(data.pages);
-          y.domain([0, d3.max(data.weights, function(d) { return d.total; })]);
-
-
-          var page = svg.selectAll(".page")
-              .data(data.weights)
-            .enter().append("g")
-              .attr("class", "g")
-              .attr("transform", function(d) { return "translate(" + x(d.page) + ",0)"; });
-
-          page.selectAll("rect")
-              .data(function(d) {
-                  return d.topics;
-               })
-            .enter().append("rect")
-              .attr("width", x.rangeBand())
-              .attr("y", function(d) {
-                  return y(d.y1); })
-              .attr("height", function(d) { return y(d.y0) - y(d.y1); })
-              .attr("topic", function(d) { return d.name;  })
-              .classed("topicbar", true)
-              .style("fill", function(d) { return color(d.name); })
-              .on('mouseover', function(d) {
-                  d3.selectAll("[topic='" + d.name + "']")
-                    .classed('highlight', true);
-              })
-              .on('mouseout', function(d) {
-                  d3.selectAll("[topic='" + d.name + "']")
-                    .classed('highlight', false);
-              })
-              .on('click', function(d) {
-
-
-                  refreshTopicData(d.name);
-              });
-              if (callback) { callback(data); }
-        });
-    };
-
-    var refreshTopicData = function(topic_id) {
-        d3.selectAll(".topicbar.selected")
-          .classed("selected", false)
-          .classed("highlight", false);
-        d3.selectAll("[topic='" + topic_id + "']")
-          .classed("selected", true);
-
-        d3.json("/topics/" + topic_id + "/?data=json", function(data) {
-            var termlist = d3.select('#topic-details-terms');
-            $('#topic-details-terms').empty();
-            $('#topic-details-title').empty();
-
-            d3.select('#topic-details')
-              .style('visibility', 'visible');
-
-            d3.select('#topic-details-swatch').style('background-color', color(data.id));
-            d3.select('#topic-details-heading')
-            //    .style('background-image', 'linear-gradient(to bottom,#f5f5f5 0,'+ color(data.id) + ' 100%)');
-          d3.select('#topic-details-title')
-              .text(data.label);
-          d3.select('#topic-details-link')
-              .attr('href', '{% url "topics" %}' + data.id + '/');
-
-            var maxWeight = data.terms[0].weight;
-            data.terms.forEach(function(term) {
-                 termlist.append('li')
-                  .classed("topic-details-term", true)
-                  .attr("style", "font-size:" + Math.max(0.5, term.weight*2.5) + 'vw;')
-                  .text(term.term);
-            });
-        });
-    }
-    redraw(function() {
-        if (initialTopic) refreshTopicData(initialTopic);
-    });
-
-    var resize = function() {
-        $('#topic-barchart').empty();
-        redraw();
-    };
-
-    var windowWidth = $(window).width();
-    d3.select(window).on('resize', function(event) {
-        var diff = windowWidth - $(window).width();
-        if (diff > 10 | diff < -10) {
-            resize(event);
-            windowWidth = $(window).width();
-        }
-    })
-    d3.select(window).on('orientationchange', function(event) {
-        resize(event);
-        windowWidth = $(window).width();
-    });
-
-
-
-
 </script>
+<script type="text/javascript" src="{% static "explorer/js/views/document.js" %}"></script>
 {% endblock %}

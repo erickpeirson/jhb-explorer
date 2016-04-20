@@ -1,0 +1,31 @@
+<div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">The Topic Co-Location Graph</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    This graph shows all of the topics in the JHB Explorer <a href="#" data-toggle="tooltip" data-placement="top" title="What's that?">topic model</a>,
+                    and how those topics co-occur across the <em>Journal of the History of Biology</em> corpus.
+                </p>
+                <p>
+                    Each topic is represented by a bubble, known to graph-theory nerds as a <strong>"node"</strong>. If you click on a node, information about the
+                    correspoding topic will be shown at right. Each line between a pair of nodes is known as an <strong>"edge"</strong>. If there is an edge between
+                    two nodes, that means that the two corresponding topics frequently occur together (they are <strong>"co-located"</strong>) on pages in <em>JHB</em>.
+                </p>
+                <p>
+                    The width and opacity of each edge corresponds to the <strong><a href="#"  data-toggle="tooltip" data-placement="top" title="Huh?">normalized
+                    pointwise mutual information (nPMI)</a></strong> statistic for the two corresponding topics. The higher the nPMI, the more likely it is that
+                    the listed topic and the current topic are related in some way. An edge is drawn between two topics only if their nPMI is in the upper 98th
+                    percentile. nPMI is more useful than simply looking at how frequently two topics occur together, because it takes into account the probability
+                    that two topics will occur together simply by chance (e.g. because one topic is very prominent in the corpus).
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
