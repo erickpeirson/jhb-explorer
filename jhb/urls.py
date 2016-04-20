@@ -19,5 +19,7 @@ urlpatterns = [
     url(r'^locations/$', 'explorer.views.locations.locations', name='locations'),
     url(r'^locations/(?P<location_id>[0-9]+)/$', 'explorer.views.locations.location', name='location_detail'),
     url(r'^(?i)search/', JHBSearchView.as_view(), name='search'),
-    url(r'^autocomplete/', autocomplete, name='autocomplete')
+    url(r'^autocomplete/', autocomplete, name='autocomplete'),
+    url(r'^about/$', 'explorer.views.about', name='about'),
+    url(r'^methods/$', 'explorer.views.about', name='methods'),
 ]

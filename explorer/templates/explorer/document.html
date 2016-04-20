@@ -43,7 +43,7 @@
             <div class="panel panel-transparent" id="topic-details" style="visibility: hidden;">
                 <div class="panel-heading clearfix" id="topic-details-heading">
                     <span class="h4">
-                        <img class="img img-rounded topic-details-swatch" id="topic-details-swatch"></img>
+                        <span class="img img-rounded topic-details-swatch" id="topic-details-swatch"></span>
                         <a id="topic-details-link"><span id="topic-details-title"></span></a>
                     </span>
                 </div>
@@ -66,7 +66,10 @@
                 <!-- <div class="panel-body"> -->
                     <ul class="list-group h6">
                         {% for citation in document.cites.all %}
-                        <a href="{% url "document_detail" citation.id %}" class="list-group-item">{{ citation.title }} ({{ citation.publication_date }})</a>
+                        <a href="{% url "document_detail" citation.id %}"
+                            class="list-group-item">
+                            {{ citation.title }} ({{ citation.publication_date }})
+                        </a>
                         {% endfor %}
                     </ul>
                 <!-- </div> -->
@@ -82,7 +85,10 @@
                 <!-- <div class="panel-body"> -->
                     <ul class="list-group h6">
                         {% for citation in document.cited_by.all %}
-                        <a href="{% url "document_detail" citation.id %}" class="list-group-item">{{ citation.title }} ({{ citation.publication_date }})</a>
+                        <a href="{% url "document_detail" citation.id %}"
+                            class="list-group-item">
+                            {{ citation.title }} ({{ citation.publication_date }})
+                        </a>
                         {% endfor %}
                     </ul>
                 <!-- </div> -->
@@ -102,7 +108,12 @@
                 </div>
                 <ul class="list-group h6" style="max-height: 200px; overflow-y: scroll;">
                     {% for occurrence in document.taxon_occurrences.all %}
-                    <a href="{% url "organism_detail" occurrence.taxon.id %}" class="list-group-item"><em>{{ occurrence.taxon.scientific_name }}</em> {% if occurrence.taxon.division %} <span class="label label-primary">{{ occurrence.taxon.division }}</span>{% endif %}</a>
+                    <a href="{% url "organism_detail" occurrence.taxon.id %}"
+                        class="list-group-item">
+                        <em>{{ occurrence.taxon.scientific_name }}</em>
+                        {% if occurrence.taxon.division %}
+                        &nbsp;<span class="label label-primary">{{ occurrence.taxon.division }}</span>
+                        {% endif %}</a>
                     {% endfor %}
                 </ul>
             </div>
@@ -120,7 +131,17 @@
                 </div>
                 <ul class="list-group h6" style="max-height: 200px; overflow-y:scroll;">
                     {% for document_id, document_title, document_date, weight, topics in related_documents %}
-                    <a href="{% url "document_detail" document_id %}" class="list-group-item">{{document_title}} ({{document_date}}) {% for topic_label, topic_id in topics %}<img class="img img-rounded topic-details-swatch swatch-static" id="topic-{{topic_id}}-swatch}" title='{{ topic_label }}' data-toggle='tooltip' data-container='body'></img>{% endfor %}</a>
+                    <a href="{% url "document_detail" document_id %}"
+                        class="list-group-item">{{document_title}} ({{document_date}})<br />
+                        {% for topic_label, topic_id in topics %}
+                        <span class="img img-rounded topic-details-swatch swatch-static"
+                            id="topic-{{topic_id}}-swatch}"
+                            title='{{ topic_label }}'
+                            data-toggle='tooltip'
+                            data-container='body'>
+                        </span>
+                        {% endfor %}
+                    </a>
                     {% endfor %}
                 </ul>
             </div>

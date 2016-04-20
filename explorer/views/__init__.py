@@ -21,6 +21,16 @@ def home(request):
     return HttpResponse(response_data, content_type=content_type)
 
 
+def about(request):
+    template = loader.get_template('explorer/about.html')
+    context = RequestContext(request, {
+        'active': 'about',
+    })
+    response_data = template.render(context)
+    content_type = "text/html; charset=utf-8"
+    return HttpResponse(response_data, content_type=content_type)
+
+
 def citations(request):
     """
     Displays a DAG showing citations among JHB articles. Overlays for topics.

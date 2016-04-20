@@ -1,0 +1,104 @@
+{% extends "explorer/base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-sm-4 col-lg-3 text-right">
+        <div style="font-size: 6em;" class="text-warning">About</div>
+    </div>
+    <div class="col-sm-8 col-lg-9">
+        <div class="h1">The <em>JHB</em> at 50</div>
+        <div class="h4">A computational reflection on fifty years of the <em>Journal of the History of Biology</em>.</div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-6 col-md-6 col-lg-6">
+        <p>
+            In his editorial foreward to the first issue of the <em>Journal of the History of Biology</em>,
+            <a href="{% url 'author_detail' 565 %}">Everett Mendelsohn</a> made the following remarks.
+        </p>
+        <blockquote style="font-size: 1.1em;">
+            <em>
+                Contemporary scholarship in the history of science makes changed demands upon the author; these are demands for
+                methodological awareness and realization that other fields of historical study have brought new sophistication
+                to the writing of history.
+            </em>
+            <footer class="blockquote-footer">Everett Mendelsohn, <em>JHB</em> Volume 1, Issue 1, Page iii</footer>
+        </blockquote>
+        <p>
+            <a href="{% url 'author_detail' 565 %}">Mendelsohn</a>'s admonition to go beyond the "simple narrative", and bring
+            to bear the full battery of critical and comparative lenses afforded by historical scholarship, did not go unheeded. Today,
+            the field of history of biology is a bustling intersection of scholarly approaches, weaving together perspectives
+            from sociology, economics, and environmental studies into a rich collection of historiographic theories, models,
+            and methods.
+        </p>
+        <p>
+            Historians of science are continuing that tradition of methodological awareness in the digital age. As the history of science
+            moves online, historians are experimenting with innovative ways of organizing and communicating the "changing concepts
+            and altered methods of experiment and observation" that characterize scientific activity.
+        </p>
+        <p>
+            This online exhibit turns a few of those digital methods back onto the discipline of the history of science itself.
+        </p>
+        <p>
+            This project is an experiment in creating new views onto our own scholarly productions and the development of our field.
+            The <a href="{% url "methods" %}">techniques</a> that we have employed range from the trivially simple&mdash;like
+            <a href="{% url "locations" %}">placing points on a map</a>&mdash;to the complex&mdash;using Bayesian machine-learning
+            techniques to model <a href="{% url "topics" %}">latent themes</a> across the thousands of pages of articles published
+            in <em>JHB</em> over the past fifty years.
+        </p>
+        <p class="h3">
+            The goal of this interactive exhibit is to prompt a conversation about the structure and presentation of our collective
+            knowledge in the digital domain.
+        </p>
+        <p>
+            Our sources are online, our notes are increasingly digital, and our books and articles are increasingly consumed in
+            electronic form. What are the opportunities, challenges, and imaginations for historical scholarship in the age of
+            the internet?
+        </p>
+    </div>
+    <div class="col-sm-6 col-md-6 col-lg-6">
+        <div class="panel panel-semitransparent">
+            <div class="panel-heading">
+                <span class="h2 text-warning">Structure of the Project</span>
+            </div>
+            <div class="panel-body">
+                <p>
+                    The nucleus of this online exhibit are the digized contents of the <em>Journal of the History of Biology</em> itself,
+                    the bulk of which were graciously provided by the folks at <a href="http://jstor.org">JSTOR</a>. Having access to these
+                    complete documents means that we have been able to analyze them on a page-by-page basis. The main components of our
+                    analysis are described briefly below, and more details can be found <a href="{% url "methods" %}">here</a>.
+                </p>
+                <p class="h4 text-warning">The Topic Model</p>
+                <p>
+                    Topic modeling is a technique developed to optimize internet search engines by discovering or inferring latent
+                    concepts or topics scattered across extremely large collections of digital texts. In the last decade, topic modeling
+                    has become popular in Digital Humanities as a discovery tool, as described in
+                    <a href="http://journalofdigitalhumanities.org/2-1/">this special issue of <em>Journal of Digital Humanities</em></a>.
+                </p>
+                <p>
+                    We modeled the thematic content of each page in <em>JHB</em>, and used the co-occurrence of topics on individual
+                    pages to explore  <a href="{% url 'topics' %}">how themes are related over time</a>.  We've used the topic model
+                    in other ways, too: finding related authors and documents, and looking at the thematic context of organisms that
+                    occur in <em>JHB</em>.
+                </p>
+                <p class="h4 text-warning">Organisms: Named Entity Recognition</p>
+                <p>
+                    Named Entity Recognition (NER) is a machine-learning technique for identify passages of text that refer to things like
+                    people, places, and dates. We used NER to identify references to particular taxa in <em>JHB</em>, and then cross-referenced
+                    them with the <a href="http://www.ncbi.nlm.nih.gov/guide/taxonomy/">NCBI Taxonomy database</a>. The result is an
+                    intruiging picture of how historians have discussed <a href="{% url 'organism_detail' 63221 %}">individual taxa</a>
+                    and <a href="{% url 'organisms' %}">major taxonomic divisions</a> over time.
+                </p>
+                <p class="h4 text-warning">Geography of the <em>JHB</em></p>
+                <p>
+                    
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

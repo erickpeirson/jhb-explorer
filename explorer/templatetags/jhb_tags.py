@@ -1,6 +1,8 @@
 from django import template
 from django.contrib.staticfiles.templatetags.staticfiles import static
 
+from explorer.models import ExternalResource
+
 import math
 register = template.Library()
 
@@ -22,6 +24,7 @@ def permalink(doi):
     elif doi.startswith('10.2307'):
         return u'http://www.jstor.org/stable/%s' % doi
 
+
 @register.filter
 def taxonomy_permalink(taxon_id):
     return u'http://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=%i' % taxon_id
@@ -38,3 +41,12 @@ def permalink_image(doi):
 @register.filter
 def plus_one(num):
     return int(num) + 1
+
+
+@register.filter
+def get_resource_icon(resource_type):
+    icons = {
+        ExternalResource.ISISCB: static('/static/explorer/images/IsisCB-80px.png'),
+        ExternalResource.VIAF: static('/static/explorer/images/viaf.png'),
+    }
+    return icons.get(resource_type, None)

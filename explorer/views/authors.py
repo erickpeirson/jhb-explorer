@@ -14,6 +14,15 @@ from collections import Counter, OrderedDict
 import json
 
 
+def _external_resources(author):
+    queryset = author.resources.all()
+    return queryset.values_list('resource__resource_location',
+                                'resource__resource_type')
+
+
+
+
+
 def _topic_authors(topic, top=5, min_weight=5.):
     queryset = topic.in_documents.filter(weight__gte=min_weight)
     fields = [
@@ -146,6 +155,7 @@ def author(request, author_id):
         'topics': _author_topics(author),
         'similar_authors': _similar_authors(author),
         'active': 'authors',
+        'resources': _external_resources(author),
     })
     return HttpResponse(template.render(context))
 

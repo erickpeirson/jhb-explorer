@@ -242,8 +242,8 @@ class AuthorExternalResource(models.Model):
 
 class ExternalResource(models.Model):
     """
-
     """
+    
     resource_location = models.URLField(max_length=500)
     """The URL of the human-usable resource."""
 

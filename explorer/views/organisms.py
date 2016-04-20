@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.core.cache import caches
 from django.template import RequestContext, loader
-from django.db.models import Max
+from django.db.models import Max, Count
 cache = caches['default']
 
 from explorer.models import Taxon, TopicPageAssignment, TaxonDocumentOccurrence

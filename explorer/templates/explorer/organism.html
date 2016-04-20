@@ -148,6 +148,8 @@
                 <!-- </ul> -->
                 </table>
             </div>
+
+            <!-- Linked data. -->
             {% if resourcegroups|length > 0 %}
             <div class="panel panel-sparse">
                 <div class="panel-heading">
@@ -169,7 +171,7 @@
                     <div id="linkeddata-{{i}}" class="tab-pane fade{% if i == 0 %} in active{% endif %}">
                         {% for subject_type, subresources in resources %}
                         {% if subject_type %}<div class="h5">{{ subject_type }}</div>{% endif %}
-                        <ul class="list-group">
+                        <ul class="list-group h6">
                             {% for resource in subresources %}
                             <a class="list-group-item" href="{{resource.url}}" target="_blank">
                                 {% if resource.link_name %}{{ resource.link_name }}{% else %}{{ resource.provider.name }}{% endif %}
