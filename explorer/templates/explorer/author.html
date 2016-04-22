@@ -14,13 +14,19 @@
 <div class="h1" style="margin-top: 0px; vertical-align: middle;">{{ author }}
     {% if resources|length > 0 %}
         <div class="pull-right btn-group">
-        {% for resource_location, resource_type in resources %}
-        <a href="{{ resource_location }}" class="btn btn-default" target="_blank">
-            <img src="{{ resource_type|get_resource_icon }}"
-                class="img img-responsive"
-                style="height: 30px;">
-        </a>
-        {% endfor %}
+            {% for resource_location, resource_type in resources %}
+            <a href="{{ resource_location }}"
+                class="btn btn-default"
+                target="_blank"
+                data-toggle="tooltip"
+                data-placement="left"
+                data-container="body"
+                title="View linked record in {{ resource_type|get_resource_label }}">
+                <img src="{{ resource_type|get_resource_icon }}"
+                    class="img img-responsive"
+                    style="height: 30px;">
+            </a>
+            {% endfor %}
         </div>
     {% endif %}
 </div>

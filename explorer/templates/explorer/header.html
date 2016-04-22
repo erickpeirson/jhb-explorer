@@ -17,9 +17,7 @@
                 <li{% if active == 'locations' %} class="active"{% endif %}><a href="{% url "locations" %}">Locations</a></li>
                 <li{% if active == 'about' %} class="active"{% endif %}><a href="{% url 'about' %}">About</a></li>
                 <li{% if active == 'methods' %} class="active"{% endif %}><a href="{% url 'methods' %}">Methods</a></li>
-            </ul>
-            <ul class="nav navbar-nav navbar-right">
-
+                <li>{{ fdsa}}</li>
             </ul>
         </div>
     </div>

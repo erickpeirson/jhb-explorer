@@ -10,7 +10,7 @@ import json
 
 class JHBSearchView(FacetedSearchView):
     facet_fields = ['authors', 'publication_date', 'result_type']
-    queryset = SearchQuerySet()
+    # queryset = SearchQuerySet()
     results_per_page = 40
     form_class = JHBSearchForm
     template_name = "search/search.html"
@@ -28,9 +28,18 @@ class JHBSearchView(FacetedSearchView):
             queryset = queryset.exclude(publication_date__gt=end)
         return queryset
 
+    def form_invalid(self, form):
+        context = self.get_context_data(**{
+            self.form_name: form,
+            'object_list': [],
+        })
+        return self.render_to_response(context)
+
     def get_context_data(self, *args, **kwargs):
         cdata = super(FacetedSearchView, self).get_context_data(*args, **kwargs)
         page = cdata['page_obj']
+        if len(cdata['object_list']) == 0:
+            return cdata
 
         # If we don't strip the page number from the base URL for facet links,
         #  we are likely to end up on non-existant pages. E.g. for a result-set
@@ -97,9 +106,16 @@ class JHBSearchView(FacetedSearchView):
         # Haystack doesn't support range facets at the moment, so we need to do
         #  this ourself. To build the range selection widget, we need to know
         #  the min and max pubdates available in the result set.
-        years, yearcounts = zip(*sorted(cdata['facets']['fields']['publication_date'], key=lambda d: d[0]))
-        years_base_url = pared_url(base, base_params,
-                                   lambda k, v, **e: k == 'page' or 'publication_date' in k)
+        publication_date = cdata['facets']['fields']['publication_date']
+        if len(publication_date) > 0:
+            years, yearcounts = zip(*sorted(publication_date, key=lambda d: d[0]))
+            years_base_url = pared_url(base, base_params,
+                                       lambda k, v, **e: k == 'page' or 'publication_date' in k)
+            cdata.update({
+                'years_base_url': years_base_url,
+                'minYear': min(years),
+                'maxYear': max(years),
+            })
 
         cdata.update({
             'active': 'search',
@@ -112,11 +128,7 @@ class JHBSearchView(FacetedSearchView):
             'page_next': min(page.paginator._num_pages, page.number + 1),
             'page_last': page.paginator._num_pages,
             'facet_base_url': facet_base_url,
-            'years_base_url': years_base_url,
             'active_facets': active_facets,
-
-            'minYear': min(years),
-            'maxYear': max(years),
         })
 
         return cdata

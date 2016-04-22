@@ -13,6 +13,36 @@
 </style>
 
 <div class="container-fluid">
+    <div class="panel panel-transparent">
+        <div class="h1 text-warning">{{ document.title }}
+            {% comment %}
+            The doi indicates whether or not the article was provided by JSTOR
+            or by Springer.
+            {% endcomment %}
+            {% if document.doi %}
+            <!-- Link to original article (by DOI) -->
+            <div class="pull-right btn-group">
+                <a href="{{ document.doi|permalink }}"
+                    class="btn"
+                    target="_blank"
+                    aria-label="JSTOR"
+                    data-toggle="tooltip"
+                    data-placement="left"
+                    data-container="body"
+                    title="View original article in JSTOR">
+                    <img src="{{ document.doi|permalink_image }}"
+                        class="img img-responsive"
+                        style="height: 30px;">
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        <div class="h4">{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</div>
+        {% for author in document.authors.all %}
+        <a href="{% url "author_detail" author.id  %}">{{ author.forename.title }} {{ author.surname.title }}</a>
+        {%endfor%}
+    </div>
+
     <div class="row">
         <div class="col-sm-9">
             <div class="panel">
@@ -22,19 +52,7 @@
                 <div class="panel-body">
                     <div id="topic-barchart"></div>
 
-                    <div class="h3">{{ document.title }}
-                        <!-- <span class="pull-right btn-group"> -->
-                            {% if document.doi %}
-                            <a type="button" href="{{ document.doi|permalink }}" target="_blank" class="btn" aria-label="JSTOR">
-                                <img style="height: 30px;" src="{{ document.doi|permalink_image }}" />
-                            </a>
-                            {% endif %}
-                        <!-- </span> -->
-                    </div>
-                    <div class="h4">{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</div>
-                        {% for author in document.authors.all %}
-                            <a href="{% url "author_detail" author.id  %}">{{ author.forename.title }} {{ author.surname.title }}</a>
-                        {%endfor%}
+
                 </div>
             </div>
 
@@ -57,30 +75,12 @@
     </div>
 
     <div class="row">
-        {% if document.cites.count > 0 %}
-        <div class="col-sm-3">
-            <div class="panel panel-sparse">
-                <div class="panel-heading">
-                    <span class="h4">Cites (within <em>JHB</em>)</span>
-                </div>
-                <!-- <div class="panel-body"> -->
-                    <ul class="list-group h6">
-                        {% for citation in document.cites.all %}
-                        <a href="{% url "document_detail" citation.id %}"
-                            class="list-group-item">
-                            {{ citation.title }} ({{ citation.publication_date }})
-                        </a>
-                        {% endfor %}
-                    </ul>
-                <!-- </div> -->
-            </div>
-        </div>
-        {% endif %}
+        <!-- Articles that cite this article. -->
         {% if document.cited_by.count > 0 %}
         <div class="col-sm-3">
             <div class="panel panel-sparse">
                 <div class="panel-heading">
-                    <span class="h4">Cited by (within <em>JHB</em>)</span>
+                    <span class="h4">Cited by</span>
                 </div>
                 <!-- <div class="panel-body"> -->
                     <ul class="list-group h6">
@@ -96,7 +96,28 @@
         </div>
         {% endif %}
 
-        {# Taxonomic references in this document. #}
+        <!-- Articles cited by this article. -->
+        {% if document.cites.count > 0 %}
+        <div class="col-sm-3">
+            <div class="panel panel-sparse">
+                <div class="panel-heading">
+                    <span class="h4">Cites</span>
+                </div>
+                <!-- <div class="panel-body"> -->
+                    <ul class="list-group h6">
+                        {% for citation in document.cites.all %}
+                        <a href="{% url "document_detail" citation.id %}"
+                            class="list-group-item">
+                            {{ citation.title }} ({{ citation.publication_date }})
+                        </a>
+                        {% endfor %}
+                    </ul>
+                <!-- </div> -->
+            </div>
+        </div>
+        {% endif %}
+
+        {% comment %} Taxonomic references in this document. {% endcomment %}
         {% if document.taxon_occurrences.count > 0 %}
         <div class="col-sm-3">
             <div class="panel panel-sparse">
@@ -120,11 +141,11 @@
         </div>
         {% endif %}
 
-        {# Related documents (via the topic model). #}
+        {% comment %} Related documents (via the topic model). {% endcomment %}
         <div class="col-sm-3">
             <div class="panel panel-sparse">
                 <div class="panel-heading clearfix">
-                    <span class="h4">Related Articles</span>
+                    <span class="h4">Related</span>
                     <button type="button" class="btn btn-default btn-sm pull-right" aria-label="Info" data-toggle="modal" data-target="#relatedDocumentsModal">
                         <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="What am I looking at?"></span>
                     </button>

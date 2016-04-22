@@ -1,0 +1,45 @@
+#topic-stream-container {
+  /*background: url('{% static "explorer/images/network.png" %}') no-repeat center center;*/
+  background-color: white;
+    position: absolute;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    width: 100%;
+    top: 50;
+    left:0;
+
+
+    border-width: 0 0 10px 0;
+        -webkit-border-image:
+            -webkit-gradient(linear, 100% 0, 0 0, from(white), to(#D4D8D1)) 100% 1;
+        -webkit-border-image:
+            -webkit-linear-gradient(top, white, #D4D8D1) 100% 1;
+        -o-border-image:
+                 -o-linear-gradient(top, white, #D4D8D1) 100% 1;
+}
+#topic-stream {
+    /*height: 140px;*/
+}
+
+#pie-container {
+    margin-top: 160px;
+}
+
+.arc text {
+  font: 10px sans-serif;
+  text-anchor: middle;
+}
+
+.arc path {
+  stroke: #67655D;
+  shape-rendering: geometricPrecision;
+}
+
+text {
+    font-family: Palatino;
+    font-size: 1.75em;
+}
+
+#organism-list {
+    overflow-y: scroll;
+}
