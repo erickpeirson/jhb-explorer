@@ -50,3 +50,12 @@ def get_resource_icon(resource_type):
         ExternalResource.VIAF: static('/static/explorer/images/viaf.png'),
     }
     return icons.get(resource_type, None)
+
+
+@register.filter
+def get_resource_label(resource_type):
+    types = {
+        ExternalResource.ISISCB: 'IsisCB Explore',
+        ExternalResource.VIAF: 'Virtual Internet Authority File',
+    }
+    return types.get(resource_type, None)

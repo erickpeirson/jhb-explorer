@@ -23,36 +23,39 @@
     <div class="panel panel-transparent">
         <div class="panel-body">
             <!-- Taxon header & NCBI link. -->
-            <div class="col-sm-{% if taxon.names.count > 0 %}6{% else %}12{% endif %}">
-                <span class="h2">Taxon: {{ taxon|format_taxon_name|safe }}{% if taxon.rank %} <span class="label label-default">{{ taxon.rank }}</span>{% endif %}
-                    <a type="button"
-                        href="{{ taxon.id|taxonomy_permalink }}"
-                        target="_blank"
+            <div class="h1">{{ taxon|format_taxon_name|safe }}{% if taxon.rank %} <span class="label label-default">{{ taxon.rank }}</span>{% endif %}
+                <!-- NCBI Taxonomy link -->
+                <div class="pull-right btn-group">
+                    <a href="{{ taxon.id|taxonomy_permalink }}"
                         class="btn"
+                        target="_blank"
                         aria-label="NCBI Taxonomy"
                         data-toggle="tooltip"
-                        data-placement="right"
+                        data-placement="left"
+                        data-container="body"
                         title="View in NCBI Taxonomy browser">
-                        <img style="height: 30px;"
-                            class="image"
-                            src="{% static "explorer/images/128px-US-NLM-NCBI-Logo.svg.png" %}" />
+                        <img src="{% static "explorer/images/128px-US-NLM-NCBI-Logo.svg.png" %}"
+                            class="img img-responsive"
+                            style="height: 30px;">
                     </a>
-                </span>
+                </div>
             </div>
-
             <!-- Alternate names for this taxon -->
             {% if taxon.names.count > 0 %}
-            <div class="col-sm-6">
+            <p>
                 {% for name in taxon.names.all %}
-                <li class="label label-warning h4"
-                    style="white-space: normal; line-height: 25px; cursor: pointer; margin-right: 10px;"
+                <a class="text-warning h6"
+                    style="white-space: normal; line-height: 25px; cursor: default; margin-right: 10px;"
                     data-toggle="tooltip"
                     title="{{ name.name_type }}">
                     {{ name.display_name }}
-                </li>
+                </a>
                 {% endfor %}
-            </div>
+            </p>
             {% endif %}
+            <!-- </div> -->
+
+
         </div>
 
 

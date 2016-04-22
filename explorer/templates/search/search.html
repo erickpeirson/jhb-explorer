@@ -36,7 +36,10 @@
 {% if query %}
 <div class="container-fluid">
     <div class="h4 text-warning clearfix">Showing results {{ result_start }} - {{ result_end}} of {{ result_total }}
-        {# Only show next/previous options if there is more than one page of results. #}
+        {% comment %}
+        Only show next/previous options if there is more than one page of
+        results.
+        {% endcomment %}
         {% if result_total > page_obj.paginator.per_page %}
         <span class="pull-right"><a href="{{ facet_base_url }}&amp;page={{ page_previous }}"{% if page_current <= 1 %} style="visibility: hidden;"{% endif %}>&#171; Previous</a> | <a href="{{facet_base_url}}&amp;page={{ page_next }}" {% if page_current >= page_last %} style="visibility: hidden;"{% endif %}>Next &#187;</a></span>
         {% endif %}
@@ -126,7 +129,10 @@
         <div class="col-sm-8">
             <ul class="list-group">
             {% for result in page_obj.object_list %}
-                {# Result icon and coloring is determined by the result type (e.g. Author, Document, Location). #}
+                {% comment %}
+                Result icon and coloring is determined by the result type (e.g.
+                Author, Document, Location).
+                {% endcomment %}
                 <a href="{{ result.object.get_absolute_url }}" class="list-group-item {% if result.model_name == 'document' %}list-group-item-primary{% elif result.model_name == 'author' %}list-group-item-warning{%  elif result.model_name == 'topic' %}list-group-item-info{%  elif result.model_name == 'taxon' %}list-group-item-success{%  elif result.model_name == 'location' %}list-group-item-danger{% endif %}">
                     <i class="glyphicon {% if result.model_name == 'document' %}glyphicon-book{% elif result.model_name == 'author' %}glyphicon-user{%  elif result.model_name == 'topic' %}glyphicon-asterisk{%  elif result.model_name == 'taxon' %}glyphicon-leaf{%  elif result.model_name == 'location' %}glyphicon glyphicon-globe{% endif %}"></i>
                     <span class="h5">{% if result.model_name == 'taxon' %}<em>{% endif %}{{ result.title }}{% if result.model_name == 'taxon' %}</em>{% endif %}</span>

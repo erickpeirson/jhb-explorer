@@ -9,6 +9,7 @@ var startYear = 1972,
     years,
     m,
     n=20,
+    resizeTree,
     stack = d3.layout.stack().offset("wiggle");
 
 var color = ["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
@@ -242,6 +243,7 @@ function transition() {
 
 function resize() {
     redraw();
+    resizeTree();
 }
 
 var clearContainingDocuments = function () {
@@ -304,6 +306,7 @@ var refreshOrganismData = function(start, end) {
 if (!organism_detail_url) {
     console.log('Variable ``organism_detail_url`` is not set.')
 }
+
 d3.json(organism_detail_url + "?data=time", function(data) {
     n = 20; // number of layers
     m = data.values.length; // number of samples per layer
@@ -316,8 +319,6 @@ d3.json(organism_detail_url + "?data=time", function(data) {
     draw(layers);
     d3.select(window).on('resize', resize);
 });
-
-
 
 
 var orgFormat = function(organism) {
@@ -367,7 +368,7 @@ d3.json("?data=tree", function(data) {
     * The dimensions of the tree visualization is based on the dimensions of
     #  its parent container.
     */
-    var resizeTree = function() {
+    resizeTree = function() {
         treeWidth = parseInt(d3.select('#tree').style('width'), 10) - margin.right - margin.left,
         treeHeight = parseInt(d3.select('#tree').style('height'), 10) - margin.top - margin.bottom;
 
@@ -384,7 +385,7 @@ d3.json("?data=tree", function(data) {
             .attr("height", treeHeight + margin.top + margin.bottom)
 
     }
-    d3.select(window).on('resize', resizeTree);
+    // d3.select(window).on('resize', resizeTree);
 
     // Draw the tree for the first time.
     var margin = {top: 20, right: 120, bottom: 20, left: 120},

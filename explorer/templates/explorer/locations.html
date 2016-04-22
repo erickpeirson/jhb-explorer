@@ -9,20 +9,23 @@
 
 {% block content %}
 
-<div class="h3" style="margin-top: 0px;">Geography of the <em>JHB</em>
-    <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#locationsModal">
-        <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
-    </button>
+<div class="panel panel-transparent">
+    <div class="h1 text-warning" style="margin-top: 0px;">Geography of the <em>JHB</em>
+        <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#locationsModal">
+            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+        </button>
+    </div>
+    <p>
+        This map depicts the geographic distribution of articles in the <em>Journal of the History of Biology</em>. Each
+        <svg height="10" width="10"><circle cx="5" cy="5" r="5" fill="gray" /></svg> represents a specific geographic
+        feature in the <a href="http://geonames.org" target="_blank">GeoNames</a> database. Clicking on one will reveal
+        all of the articles in the <em>JHB</em> believed to be associated with that location.
+    </p>
 </div>
 
 <div class="row">
     <div class="col-sm-8">
-        <p>
-            This map depicts the geographic distribution of articles in the <em>Journal of the History of Biology</em>. Each
-            <svg height="10" width="10"><circle cx="5" cy="5" r="5" fill="gray" /></svg> represents a specific geographic
-            feature in the <a href="http://geonames.org" target="_blank">GeoNames</a> database. Clicking on one will reveal
-            all of the articles in the <em>JHB</em> believed to be associated with that location.
-        </p>
+
         <div class="panel">
             <div  id="map" style="height: 400px;"></div>
         </div>
@@ -35,7 +38,16 @@
     <div class="col-sm-4">
         <div class="panel" id="document-list-panel" style="visibility: hidden;">
             <div class="panel-heading" id="document-list-heading">
-                <span class="h4">Articles set in <strong id="document-list-heading-label"></strong></span>
+                <span class="h4">Articles set in
+                    <a id="document-list-heading-link"
+                        href=""
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        data-container="body"
+                        title="View in GeoNames">
+                        <strong id="document-list-heading-label"></strong>
+                    </a>
+                </span>
             </div>
             <table class="table small-text table-condensed">
                 <thead>

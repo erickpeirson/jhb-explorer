@@ -91,6 +91,8 @@ map.on('click', function (e) {
     $('#document-list').empty();
     $('#document-list-panel').css('visibility', 'visible');
     $('#document-list-heading-label').text(feature.properties.label);
+    // TODO: This shouldn't be hardcoded.
+    $('#document-list-heading-link').attr('href', 'http://geonames.org/' + feature.properties.id);
     $.get('/locations/' + feature.properties.id + '/?data=json', {}, function(data) {
         data.documents.forEach(function(doc) {
             $('#document-list').append(
