@@ -70,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'explorer.context_processors.google_analytics_config',
             ],
         },
     },
@@ -172,3 +173,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SSLIFY_DISABLE = True       # The development server will choke on SSL.
 
 HAYSTACK_SEARCH_RESULTS_PER_PAGE = 20
+
+
+GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)
