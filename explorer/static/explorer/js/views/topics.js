@@ -257,10 +257,10 @@ $(document).ready(function() {
                                 'background-color': '#B74934',
                                 'border-color': '#AA9A66',
                                 'border-width': 2,
-                                'label': 'data(id)',
+                                'label': 'data(label)',
                                 'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 100)',
                                 'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 25, 100)',
-                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 12, 52)'
+                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 24, 52)'
                             }
                         },
                         {
@@ -271,7 +271,7 @@ $(document).ready(function() {
                                 'border-width': 4,
                                 'width': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 35, 85)',
                                 'height': 'mapData(weight, ' + minNodeWeight  + ', ' + maxNodeWeight + ', 35, 85)',
-                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 18, 52)'
+                                'font-size': 'mapData(weight, ' + minNodeWeight + ', ' + maxNodeWeight + ', 24, 52)'
                             }
                         },
                         {
@@ -361,7 +361,7 @@ $(document).ready(function() {
                             $('#topic-details-documents-heading-label').text(data.label);
                             $('#topic-details-documents-heading-qualifier').text(startYear +'\u2013'+ endYear);
                             $('#topic-details-heading-1')
-                                .text(data.label);
+                                .text('View details about this topic');
 
                             // `vw` is "viewport width" -- responsive font size!
                             data.terms.forEach(function(term) {
