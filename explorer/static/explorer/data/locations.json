@@ -1,0 +1,1645 @@
+{
+    "type": "FeatureCollection", 
+    "features": [
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-72.5162", 
+                    "42.37092"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4929024.0, 
+                "articles": [
+                    539
+                ], 
+                "class": "location", 
+                "label": "Amherst College"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "8.01427", 
+                    "47.00016"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2658434.0, 
+                "articles": [
+                    233, 
+                    261, 
+                    283, 
+                    332, 
+                    522
+                ], 
+                "class": "location", 
+                "label": "Switzerland"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-74.00597", 
+                    "40.71427"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5128581.0, 
+                "articles": [
+                    1226, 
+                    537
+                ], 
+                "class": "location", 
+                "label": "New York"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-73.45679", 
+                    "40.87149"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5113223.0, 
+                "articles": [
+                    61, 
+                    121
+                ], 
+                "class": "location", 
+                "label": "Cold Spring Harbor"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-83.50018", 
+                    "32.75042"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4197000.0, 
+                "articles": [
+                    90
+                ], 
+                "class": "location", 
+                "label": "Georgia"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-75.91797", 
+                    "42.09869"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5109177.0, 
+                "articles": [
+                    152
+                ], 
+                "class": "location", 
+                "label": "Binghamton"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-76.61219", 
+                    "39.29038"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4347778.0, 
+                "articles": [
+                    391
+                ], 
+                "class": "location", 
+                "label": "Baltimore"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "7.09548", 
+                    "50.73438"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2946447.0, 
+                "articles": [
+                    75
+                ], 
+                "class": "location", 
+                "label": "Bonn"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "11.88586", 
+                    "45.40797"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 3171728.0, 
+                "articles": [
+                    73
+                ], 
+                "class": "location", 
+                "label": "Padua"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-81.63262", 
+                    "38.34982"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4801859.0, 
+                "articles": [
+                    95
+                ], 
+                "class": "location", 
+                "label": "Charleston"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "57.58333", 
+                    "-20.3"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 934292.0, 
+                "articles": [
+                    179
+                ], 
+                "class": "location", 
+                "label": "Mauritius"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "9.26182", 
+                    "45.98772"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 3182230.0, 
+                "articles": [
+                    99
+                ], 
+                "class": "location", 
+                "label": "Bellagio"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "16.37208", 
+                    "48.20849"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2761369.0, 
+                "articles": [
+                    524
+                ], 
+                "class": "location", 
+                "label": "Vienna"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-90.19789", 
+                    "38.62727"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4407066.0, 
+                "articles": [
+                    385
+                ], 
+                "class": "location", 
+                "label": "St Louis"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-79.4163", 
+                    "43.70011"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 6167865.0, 
+                "articles": [
+                    946
+                ], 
+                "class": "location", 
+                "label": "Toronto"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "4.5", 
+                    "50.75"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2802361.0, 
+                "articles": [
+                    293, 
+                    471, 
+                    517
+                ], 
+                "class": "location", 
+                "label": "Belgium"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-102", 
+                    "23"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 3996063.0, 
+                "articles": [
+                    300
+                ], 
+                "class": "location", 
+                "label": "Mexico"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "6.14569", 
+                    "46.20222"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2660646.0, 
+                "articles": [
+                    486
+                ], 
+                "class": "location", 
+                "label": "Geneva"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "13.33333", 
+                    "47.33333"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2782113.0, 
+                "articles": [
+                    12, 
+                    190, 
+                    191, 
+                    243, 
+                    292, 
+                    423, 
+                    545
+                ], 
+                "class": "location", 
+                "label": "Austria"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "12.37129", 
+                    "51.33962"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2879139.0, 
+                "articles": [
+                    175
+                ], 
+                "class": "location", 
+                "label": "Leipzig"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-70.67253", 
+                    "41.52539"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4943140.0, 
+                "articles": [
+                    483
+                ], 
+                "class": "location", 
+                "label": "Marine Biological Laboratory"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-90.5", 
+                    "0"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 3658931.0, 
+                "articles": [
+                    1587
+                ], 
+                "class": "location", 
+                "label": "Galapagos Islands"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "2", 
+                    "46"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 3017382.0, 
+                "articles": [
+                    74, 
+                    108, 
+                    179, 
+                    186, 
+                    193, 
+                    197, 
+                    208, 
+                    210, 
+                    258, 
+                    274, 
+                    332, 
+                    333, 
+                    345, 
+                    357, 
+                    384, 
+                    398, 
+                    410, 
+                    487, 
+                    493, 
+                    535, 
+                    413, 
+                    565, 
+                    589
+                ], 
+                "class": "location", 
+                "label": "France"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-4", 
+                    "40"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2510769.0, 
+                "articles": [
+                    743, 
+                    501, 
+                    509, 
+                    531
+                ], 
+                "class": "location", 
+                "label": "Spain"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-92.50044", 
+                    "34.75037"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4099753.0, 
+                "articles": [
+                    564
+                ], 
+                "class": "location", 
+                "label": "Arkansas"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "15", 
+                    "62"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2661886.0, 
+                "articles": [
+                    220
+                ], 
+                "class": "location", 
+                "label": "Sweden"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-80.00032", 
+                    "35.50069"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4482348.0, 
+                "articles": [
+                    247, 
+                    317
+                ], 
+                "class": "location", 
+                "label": "North Carolina"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-81.00009", 
+                    "34.00043"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4597040.0, 
+                "articles": [
+                    247
+                ], 
+                "class": "location", 
+                "label": "South Carolina"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-119.75126", 
+                    "37.25022"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5332921.0, 
+                "articles": [
+                    578, 
+                    174
+                ], 
+                "class": "location", 
+                "label": "California"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "6.56667", 
+                    "53.21917"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2755251.0, 
+                "articles": [
+                    295
+                ], 
+                "class": "location", 
+                "label": "Groningen"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "132.23333", 
+                    "43.23333"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2021044.0, 
+                "articles": [
+                    326
+                ], 
+                "class": "location", 
+                "label": "Kyngol\u2019"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-156.50028", 
+                    "20.75028"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5855797.0, 
+                "articles": [
+                    544
+                ], 
+                "class": "location", 
+                "label": "Hawaii"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "10", 
+                    "56"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2623032.0, 
+                "articles": [
+                    65, 
+                    151, 
+                    179
+                ], 
+                "class": "location", 
+                "label": "Denmark"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "12.56553", 
+                    "55.67594"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2618425.0, 
+                "articles": [
+                    65, 
+                    554
+                ], 
+                "class": "location", 
+                "label": "Copenhagen"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-125.0032", 
+                    "53.99983"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5909050.0, 
+                "articles": [
+                    362
+                ], 
+                "class": "location", 
+                "label": "British Columbia"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-120.50147", 
+                    "47.50012"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5815135.0, 
+                "articles": [
+                    362
+                ], 
+                "class": "location", 
+                "label": "Washington"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "0.11667", 
+                    "52.2"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2653941.0, 
+                "articles": [
+                    242
+                ], 
+                "class": "location", 
+                "label": "Cambridge"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-15.48877", 
+                    "65.46575"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2629131.0, 
+                "articles": [
+                    196
+                ], 
+                "class": "location", 
+                "label": "Kollseyra"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-122.27275", 
+                    "37.87159"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5327684.0, 
+                "articles": [
+                    424, 
+                    532
+                ], 
+                "class": "location", 
+                "label": "Berkeley"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "5.75", 
+                    "52.25"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2750405.0, 
+                "articles": [
+                    180, 
+                    275, 
+                    448, 
+                    1015
+                ], 
+                "class": "location", 
+                "label": "Netherlands"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "138.59863", 
+                    "-34.92866"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2078025.0, 
+                "articles": [
+                    89
+                ], 
+                "class": "location", 
+                "label": "Adelaide"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-82.5001", 
+                    "28.75054"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4155751.0, 
+                "articles": [
+                    1545
+                ], 
+                "class": "location", 
+                "label": "Florida"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-0.70312", 
+                    "52.16045"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 6269131.0, 
+                "articles": [
+                    1227, 
+                    9, 
+                    60, 
+                    537, 
+                    71, 
+                    77, 
+                    78, 
+                    83, 
+                    1229, 
+                    97, 
+                    124, 
+                    126, 
+                    127, 
+                    129, 
+                    137, 
+                    142, 
+                    146, 
+                    150, 
+                    154, 
+                    161, 
+                    178, 
+                    179, 
+                    181, 
+                    210, 
+                    216, 
+                    222, 
+                    226, 
+                    227, 
+                    228, 
+                    237, 
+                    239, 
+                    248, 
+                    249, 
+                    253, 
+                    1829, 
+                    270, 
+                    275, 
+                    282, 
+                    313, 
+                    326, 
+                    328, 
+                    331, 
+                    342, 
+                    346, 
+                    348, 
+                    354, 
+                    399, 
+                    371, 
+                    376, 
+                    383, 
+                    441, 
+                    443, 
+                    394, 
+                    403, 
+                    411, 
+                    440, 
+                    450, 
+                    1047, 
+                    472, 
+                    473, 
+                    474, 
+                    489, 
+                    490, 
+                    491, 
+                    492, 
+                    499, 
+                    513, 
+                    515, 
+                    516, 
+                    518, 
+                    529, 
+                    530, 
+                    536, 
+                    64, 
+                    544, 
+                    547, 
+                    556, 
+                    568, 
+                    569, 
+                    570, 
+                    1858, 
+                    585, 
+                    588
+                ], 
+                "class": "location", 
+                "label": "England"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "120.36939", 
+                    "36.06605"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 1797929.0, 
+                "articles": [
+                    581
+                ], 
+                "class": "location", 
+                "label": "Qingdao"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-120.50139", 
+                    "44.00013"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5744337.0, 
+                "articles": [
+                    362
+                ], 
+                "class": "location", 
+                "label": "Oregon"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "12.83333", 
+                    "42.83333"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 3175395.0, 
+                "articles": [
+                    178, 
+                    200
+                ], 
+                "class": "location", 
+                "label": "Italy"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "10.5", 
+                    "51.5"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2921044.0, 
+                "articles": [
+                    55, 
+                    554, 
+                    76, 
+                    77, 
+                    110, 
+                    142, 
+                    154, 
+                    157, 
+                    167, 
+                    168, 
+                    171, 
+                    174, 
+                    183, 
+                    199, 
+                    210, 
+                    213, 
+                    228, 
+                    238, 
+                    266, 
+                    268, 
+                    284, 
+                    291, 
+                    292, 
+                    321, 
+                    335, 
+                    355, 
+                    359, 
+                    364, 
+                    378, 
+                    1622, 
+                    1319, 
+                    706, 
+                    431, 
+                    435, 
+                    494, 
+                    495, 
+                    508, 
+                    517, 
+                    52, 
+                    535, 
+                    413, 
+                    559, 
+                    569
+                ], 
+                "class": "location", 
+                "label": "Germany"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-92.50046", 
+                    "38.25031"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4398678.0, 
+                "articles": [
+                    502
+                ], 
+                "class": "location", 
+                "label": "Missouri"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "17.63889", 
+                    "59.85882"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2666199.0, 
+                "articles": [
+                    75
+                ], 
+                "class": "location", 
+                "label": "Uppsala"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "3.71667", 
+                    "51.05"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2797656.0, 
+                "articles": [
+                    156
+                ], 
+                "class": "location", 
+                "label": "Ghent"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "100", 
+                    "60"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2017370.0, 
+                "articles": [
+                    132, 
+                    160, 
+                    213, 
+                    1389, 
+                    1901, 
+                    296, 
+                    315, 
+                    337, 
+                    348, 
+                    448, 
+                    1048, 
+                    484, 
+                    548, 
+                    591
+                ], 
+                "class": "location", 
+                "label": "Russia"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "2.3488", 
+                    "48.85341"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2988507.0, 
+                "articles": [
+                    117, 
+                    306
+                ], 
+                "class": "location", 
+                "label": "Paris"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-75.16379", 
+                    "39.95234"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4560349.0, 
+                "articles": [
+                    1226, 
+                    1600
+                ], 
+                "class": "location", 
+                "label": "Philadelphia"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-113.64258", 
+                    "60.10867"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 6251999.0, 
+                "articles": [
+                    914, 
+                    580, 
+                    334, 
+                    366, 
+                    375, 
+                    68
+                ], 
+                "class": "location", 
+                "label": "Canada"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-98.5", 
+                    "39.76"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 6252001.0, 
+                "articles": [
+                    884, 
+                    57, 
+                    525, 
+                    526, 
+                    61, 
+                    62, 
+                    67, 
+                    78, 
+                    79, 
+                    579, 
+                    97, 
+                    106, 
+                    109, 
+                    112, 
+                    114, 
+                    115, 
+                    122, 
+                    124, 
+                    128, 
+                    142, 
+                    169, 
+                    170, 
+                    171, 
+                    178, 
+                    188, 
+                    189, 
+                    191, 
+                    203, 
+                    210, 
+                    1384, 
+                    214, 
+                    215, 
+                    216, 
+                    218, 
+                    225, 
+                    232, 
+                    1255, 
+                    263, 
+                    269, 
+                    280, 
+                    288, 
+                    289, 
+                    294, 
+                    310, 
+                    314, 
+                    315, 
+                    320, 
+                    331, 
+                    336, 
+                    343, 
+                    348, 
+                    353, 
+                    360, 
+                    372, 
+                    373, 
+                    374, 
+                    392, 
+                    393, 
+                    1483, 
+                    1167, 
+                    1318, 
+                    1319, 
+                    414, 
+                    1486, 
+                    422, 
+                    423, 
+                    425, 
+                    427, 
+                    432, 
+                    436, 
+                    459, 
+                    467, 
+                    470, 
+                    471, 
+                    475, 
+                    477, 
+                    479, 
+                    480, 
+                    482, 
+                    497, 
+                    500, 
+                    1232, 
+                    1233, 
+                    511, 
+                    522, 
+                    58, 
+                    536, 
+                    543, 
+                    551, 
+                    68, 
+                    560, 
+                    561, 
+                    575, 
+                    94, 
+                    584, 
+                    585, 
+                    590
+                ], 
+                "class": "location", 
+                "label": "United States"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-72.92649", 
+                    "41.31121"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4846179.0, 
+                "articles": [
+                    84
+                ], 
+                "class": "location", 
+                "label": "Yale University"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "26", 
+                    "59"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 453733.0, 
+                "articles": [
+                    415
+                ], 
+                "class": "location", 
+                "label": "Estonia"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-87.65005", 
+                    "41.85003"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4887398.0, 
+                "articles": [
+                    1226, 
+                    165, 
+                    175
+                ], 
+                "class": "location", 
+                "label": "Chicago"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-117.2742", 
+                    "32.84727"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 5363943.0, 
+                "articles": [
+                    582
+                ], 
+                "class": "location", 
+                "label": "La Jolla"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-55", 
+                    "-10"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 3469034.0, 
+                "articles": [
+                    133, 
+                    264
+                ], 
+                "class": "location", 
+                "label": "Brazil"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "115", 
+                    "-8.5"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 1650535.0, 
+                "articles": [
+                    338
+                ], 
+                "class": "location", 
+                "label": "Bali"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "0.12", 
+                    "52.203"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 7288046.0, 
+                "articles": [
+                    73, 
+                    75
+                ], 
+                "class": "location", 
+                "label": "Cambridge University"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "174", 
+                    "-42"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2186224.0, 
+                "articles": [
+                    1227
+                ], 
+                "class": "location", 
+                "label": "New Zealand"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-93.61994", 
+                    "42.03471"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4846834.0, 
+                "articles": [
+                    204
+                ], 
+                "class": "location", 
+                "label": "Ames"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-1.08083", 
+                    "16.03389"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 6262131.0, 
+                "articles": [
+                    85
+                ], 
+                "class": "location", 
+                "label": "Amadioum"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "-77.00025", 
+                    "38.91706"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 4138106.0, 
+                "articles": [
+                    189
+                ], 
+                "class": "location", 
+                "label": "Washington, D.C."
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "79", 
+                    "22"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 1269750.0, 
+                "articles": [
+                    133, 
+                    149
+                ], 
+                "class": "location", 
+                "label": "India"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "22", 
+                    "39"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 390903.0, 
+                "articles": [
+                    86, 
+                    111, 
+                    118, 
+                    1995, 
+                    381, 
+                    388, 
+                    510, 
+                    534, 
+                    538, 
+                    567
+                ], 
+                "class": "location", 
+                "label": "Greece"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "114", 
+                    "1"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 1648148.0, 
+                "articles": [
+                    338
+                ], 
+                "class": "location", 
+                "label": "Borneo"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "20.51095", 
+                    "54.70649"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 554234.0, 
+                "articles": [
+                    581
+                ], 
+                "class": "location", 
+                "label": "Kaliningrad"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "15", 
+                    "49.75"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 3077311.0, 
+                "articles": [
+                    439, 
+                    1241
+                ], 
+                "class": "location", 
+                "label": "Czechia"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "88.36304", 
+                    "22.56263"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 1275004.0, 
+                "articles": [
+                    71
+                ], 
+                "class": "location", 
+                "label": "Kolkata"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "30", 
+                    "27"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 357994.0, 
+                "articles": [
+                    345
+                ], 
+                "class": "location", 
+                "label": "Egypt"
+            }
+        }, 
+        {
+            "geometry": {
+                "type": "Point", 
+                "coordinates": [
+                    "135", 
+                    "-25"
+                ]
+            }, 
+            "type": "Feature", 
+            "properties": {
+                "gnid": 2077456.0, 
+                "articles": [
+                    89, 
+                    580, 
+                    338, 
+                    361, 
+                    1059
+                ], 
+                "class": "location", 
+                "label": "Australia"
+            }
+        }
+    ]
+}

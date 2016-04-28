@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.core.cache import caches
 from django.template import RequestContext, loader
+from django.http import Http404
 
 from explorer.models import Document, TopicDocumentAssignment
 
@@ -16,7 +17,10 @@ def document_by_doi(request, document_doi):
     """
     Wrapper for :meth:`document` that uses ``doi`` rather than ``pk``.
     """
-    document_id = Document.objects.filter(doi=document_doi[:-1]).values_list('id', flat=True)[0]
+    try:
+        document_id = Document.objects.filter(doi=document_doi[:-1]).values_list('id', flat=True)[0]
+    except IndexError:
+        raise Http404('No such document')
     return document(request, document_id)
 
 

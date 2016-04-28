@@ -243,7 +243,7 @@ class AuthorExternalResource(models.Model):
 class ExternalResource(models.Model):
     """
     """
-    
+
     resource_location = models.URLField(max_length=500)
     """The URL of the human-usable resource."""
 
@@ -433,7 +433,6 @@ class Taxon(models.Model):
         return [traverse_down(traverse_up(self, 0)[::-1][0], 0)]
 
 
-
 class TaxonDocumentOccurrence(models.Model):
     taxon = models.ForeignKey('Taxon', related_name='occurrences')
     document = models.ForeignKey('Document', related_name='taxon_occurrences')
@@ -447,6 +446,9 @@ class TaxonResourceProvider(models.Model):
 
 
 class TaxonExternalResource(models.Model):
+    """
+    Represents LinkOut resources from the NCBI Taxonomy database.
+    """
     taxon = models.ForeignKey('Taxon', related_name='resources')
 
     url = models.URLField(max_length=1000)

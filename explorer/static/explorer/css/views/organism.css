@@ -20,3 +20,33 @@
 #topic-stream {
     height: 50px;
 }
+
+
+.taxon-alternate-name {
+    white-space: normal;
+    line-height: 25px;
+    cursor: default;
+    margin-right: 10px;
+}
+
+
+#pie-container {
+    margin-top: 60px;
+    margin-bottom: 60px;
+}
+
+
+#tree {
+    height: 200px;
+}
+
+#linkeddata-content-panel {
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+.scrolling-panel-body {
+    height: 200px;
+    max-height: 200px;
+    overflow-y: scroll;
+}

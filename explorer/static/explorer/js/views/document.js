@@ -14,7 +14,7 @@ var color = d3.scale.ordinal()
 var redraw = function (callback) {
     var margin = {top: 0, right: 0, bottom: 0, left: 0},
         width = parseInt(d3.select('#topic-barchart').style('width'), 10) - margin.left - margin.right,
-        height = 150 - margin.top - margin.bottom;
+        height = 300 - margin.top - margin.bottom;
 
     var x = d3.scale.ordinal()
         .rangeRoundBands([0, width], .1);
@@ -124,7 +124,7 @@ var redraw = function (callback) {
             d3.select('#topic-details-heading')
             //    .style('background-image', 'linear-gradient(to bottom,#f5f5f5 0,'+ color(data.id) + ' 100%)');
           d3.select('#topic-details-title')
-              .text(data.label);
+              .text('Topic details');
           d3.select('#topic-details-link')
               .attr('href', topics_url + data.id + '/');
 

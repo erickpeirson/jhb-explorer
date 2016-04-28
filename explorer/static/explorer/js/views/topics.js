@@ -374,7 +374,6 @@ $(document).ready(function() {
 
                     $.get('/topics/' + nodeData.id + '/?data=documents&start=' + startYear + '&end=' + endYear, {}, function(data) {
                         data.documents.forEach(function(doc) {
-                            console.log(doc);
                             $('#topic-details-documents')
                                 .append('<tr class="h6">' +
                                     '<td>' + doc.pubdate + '</td>' +

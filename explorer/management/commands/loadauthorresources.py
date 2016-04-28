@@ -7,8 +7,11 @@ import csv
 
 
 class Command(BaseCommand):
+    help = """Load data about external authority records for authors."""
+
     def add_arguments(self, parser):
-        parser.add_argument('filename', nargs=1, type=str)
+        parser.add_argument('filename', nargs=1, type=str,
+                            help="Name of CSV file in [app]/fixtures/.")
 
 
     def handle(self, *args, **options):
@@ -30,7 +33,6 @@ class Command(BaseCommand):
         for pk, name, identifier, source, confidence in data:
             if not source or not identifier:    # No data for this author.
                 continue
-            print pk, '|', name, '|', identifier, source, confidence
 
 
             location = locations[source.lower()] % identifier
@@ -50,3 +52,4 @@ class Command(BaseCommand):
                 resource=resource,
                 confidence=confidence
             ).save()
+            self.stdout.write(self.style.SUCCESS(' | '.join[pk,  name, identifier, source, confidence]))

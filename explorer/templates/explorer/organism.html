@@ -19,7 +19,7 @@
     </div>
 </div>
 
-<div class="container-fluid" style="margin-top: 60px; margin-bottom: 60px;"  id="pie-container">
+<div class="container-fluid" id="pie-container">
     <div class="panel panel-transparent">
         <div class="panel-body">
             <!-- Taxon header & NCBI link. -->
@@ -35,8 +35,7 @@
                         data-container="body"
                         title="View in NCBI Taxonomy browser">
                         <img src="{% static "explorer/images/128px-US-NLM-NCBI-Logo.svg.png" %}"
-                            class="img img-responsive"
-                            style="height: 30px;">
+                            class="img img-responsive resource-logo">
                     </a>
                 </div>
             </div>
@@ -44,8 +43,7 @@
             {% if taxon.names.count > 0 %}
             <p>
                 {% for name in taxon.names.all %}
-                <a class="text-warning h6"
-                    style="white-space: normal; line-height: 25px; cursor: default; margin-right: 10px;"
+                <a class="text-warning h6 taxon-alternate-name"
                     data-toggle="tooltip"
                     title="{{ name.name_type }}">
                     {{ name.display_name }}
@@ -77,7 +75,7 @@
                         </button>
                     </span>
                 </div>
-                <div style="max-height: 200px; overflow-y: scroll;">
+                <div class="scrolling-panel-body">
                     <table class="table small-text table-condensed">
                         <thead>
                             <tr>
@@ -91,6 +89,47 @@
                     </table>
                 </div>
             </div>
+
+
+        </div>
+        <div class="col-sm-6 col-lg-4">
+            <!-- Related Topics -->
+            <div class="panel panel-sparse">
+                <div class="panel-heading">
+                    <span class="h4 display-4 clearfix">
+                        Related topics <span class="assignmentQualifier"></span>
+                        <button type="button" class="btn btn-default btn-sm pull-right" aria-label="Info" data-toggle="modal" data-target="#organismTopicsModal">
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
+                        </button>
+                    </span>
+                </div>
+                <div class="scrolling-panel-body">
+                    <table class="table">
+
+                        <tbody>
+                            {% for topic_id, topic_label, weight in topics %}
+                            <tr class="h6">
+                                <td>
+                                    <a href="{% url "topic_detail" topic_id %}">{{ topic_label }}</a>
+                                </td>
+                                <td class="col-sm-2">
+                                    <div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="{{ weight }}" aria-valuemin="0" aria-valuemax="100" style="width: {{weight}}%;"><span class="sr-only">{{weight}}%</span></div></div>
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+                        </tbody>
+                    <!-- </ul> -->
+                    </table>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="{% if resourcegroups|length > 0 %}col-sm-8{% else %}col-sm-12{% endif %}">
+            <!-- Cladogram browser -->
             <div class="panel panel-sparse">
                 <div class="panel-heading">
                     <span class="h4 clearfix">Cladogram Browser
@@ -99,7 +138,8 @@
                         </button>
                     </span>
                 </div>
-                <div id="tree" style="height: 200px;">
+                <div id="tree">
+                    <!-- D3 visualization is inserted here. -->
                 </div>
                 <div class="panel-footer">
                     <p class="text text-info">
@@ -122,36 +162,9 @@
                     </svg>
                 </div>
             </div>
+            <!-- End cladogram browser -->
         </div>
-        <div class="col-sm-6 col-lg-4">
-            <div class="panel panel-sparse">
-                <div class="panel-heading">
-                    <span class="h4 display-4 clearfix">
-                        Related topics <span class="assignmentQualifier"></span>
-                        <button type="button" class="btn btn-default btn-sm pull-right" aria-label="Info" data-toggle="modal" data-target="#organismTopicsModal">
-                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
-                        </button>
-                    </span>
-                </div>
-                <table class="table">
-                <!-- <ul class="list-group"> -->
-                    <tbody>
-                        {% for topic_id, topic_label, weight in topics %}
-                        <tr class="h6">
-                            <td>
-                                <a href="{% url "topic_detail" topic_id %}">{{ topic_label }}</a>
-                            </td>
-                            <td class="col-sm-2">
-                                <div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="{{ weight }}" aria-valuemin="0" aria-valuemax="100" style="width: {{weight}}%;"><span class="sr-only">{{weight}}%</span></div></div>
-                            </td>
-                        </tr>
-
-                        {% endfor %}
-                    </tbody>
-                <!-- </ul> -->
-                </table>
-            </div>
-
+        <div class="col-sm-4">
             <!-- Linked data. -->
             {% if resourcegroups|length > 0 %}
             <div class="panel panel-sparse">
@@ -169,7 +182,7 @@
                     </li>
                     {% endfor %}
                 </ul>
-                <div class="tab-content panel-body"  style="max-height: 300px; overflow-y: scroll;">
+                <div class="tab-content panel-body" id="linkeddata-content-panel">
                     {% for i, name, resources in resourcegroups %}
                     <div id="linkeddata-{{i}}" class="tab-pane fade{% if i == 0 %} in active{% endif %}">
                         {% for subject_type, subresources in resources %}
@@ -188,6 +201,7 @@
                 </div>
             </div>
             {% endif %}
+            <!-- End linked data. -->
         </div>
     </div>
     <div class="panel panel-transparent">

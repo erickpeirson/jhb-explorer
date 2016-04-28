@@ -1,0 +1,30 @@
+#topic-details-heading span {
+    vertical-align: middle;
+}
+
+.topic-details-swatch {
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+}
+
+#topic-details {
+    visibility: hidden;
+}
+
+#topic-details-terms {
+    padding-left: 0px;
+    text-align:center;
+}
+
+
+#taxon-references-list {
+    max-height: 200px;
+    overflow-y: scroll;
+}
+
+
+#related-documents-list {
+    max-height: 200px; 
+    overflow-y: scroll;
+}

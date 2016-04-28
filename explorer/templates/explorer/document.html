@@ -3,14 +3,11 @@
 {% load staticfiles %}
 {% load jhb_tags %}
 
+{% block extrahead %}
+<link rel="stylesheet" href="{% static "explorer/css/views/document.css" %}">
+{% endblock %}
+
 {% block content %}
-<style>
-.topic-details-swatch {
-    display: inline-block;
-    height: 20px;
-    width: 20px;
-}
-</style>
 
 <div class="container-fluid">
     <div class="panel panel-transparent">
@@ -31,8 +28,7 @@
                     data-container="body"
                     title="View original article in JSTOR">
                     <img src="{{ document.doi|permalink_image }}"
-                        class="img img-responsive"
-                        style="height: 30px;">
+                        class="img img-responsive resource-logo">
                 </a>
             </div>
             {% endif %}
@@ -51,22 +47,20 @@
                 </div>
                 <div class="panel-body">
                     <div id="topic-barchart"></div>
-
-
                 </div>
             </div>
 
         </div>
         <div class="col-sm-3">
-            <div class="panel panel-transparent" id="topic-details" style="visibility: hidden;">
+            <div class="panel panel-transparent" id="topic-details">
                 <div class="panel-heading clearfix" id="topic-details-heading">
-                    <span class="h4">
+                    <span class="h5">
                         <span class="img img-rounded topic-details-swatch" id="topic-details-swatch"></span>
-                        <a id="topic-details-link"><span id="topic-details-title"></span></a>
+                        <a id="topic-details-link"><span id="topic-details-title">Topic details</span></a>
                     </span>
                 </div>
                 <div class="panel-body">
-                    <ul style="padding-left: 0px; text-align:center;" id="topic-details-terms">
+                    <ul id="topic-details-terms">
                     </ul>
                 </div>
 
@@ -120,14 +114,23 @@
         {% comment %} Taxonomic references in this document. {% endcomment %}
         {% if document.taxon_occurrences.count > 0 %}
         <div class="col-sm-3">
-            <div class="panel panel-sparse">
+            <div class="panel panel-sparse" id="taxon-references">
                 <div class="panel-heading clearfix">
                     <span class="h4">Organisms</span>
-                    <button type="button" class="btn btn-default btn-sm pull-right" aria-label="Info" data-toggle="modal" data-target="#documentOrganismModal">
-                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="What am I looking at?"></span>
+                    <button type="button"
+                        class="btn btn-default btn-sm pull-right"
+                        aria-label="Info"
+                        data-toggle="modal"
+                        data-target="#documentOrganismModal">
+                        <span class="glyphicon glyphicon-info-sign"
+                            aria-hidden="true"
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="What am I looking at?">
+                        </span>
                     </button>
                 </div>
-                <ul class="list-group h6" style="max-height: 200px; overflow-y: scroll;">
+                <ul class="list-group h6" id="taxon-references-list">
                     {% for occurrence in document.taxon_occurrences.all %}
                     <a href="{% url "organism_detail" occurrence.taxon.id %}"
                         class="list-group-item">
@@ -146,11 +149,20 @@
             <div class="panel panel-sparse">
                 <div class="panel-heading clearfix">
                     <span class="h4">Related</span>
-                    <button type="button" class="btn btn-default btn-sm pull-right" aria-label="Info" data-toggle="modal" data-target="#relatedDocumentsModal">
-                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="bottom" title="What am I looking at?"></span>
+                    <button type="button"
+                        class="btn btn-default btn-sm pull-right"
+                        aria-label="Info"
+                        data-toggle="modal"
+                        data-target="#relatedDocumentsModal">
+                        <span class="glyphicon glyphicon-info-sign"
+                            aria-hidden="true"
+                            data-toggle="tooltip"
+                            data-placement="bottom"
+                            title="What am I looking at?">
+                        </span>
                     </button>
                 </div>
-                <ul class="list-group h6" style="max-height: 200px; overflow-y:scroll;">
+                <ul class="list-group h6" id="related-documents-list">
                     {% for document_id, document_title, document_date, weight, topics in related_documents %}
                     <a href="{% url "document_detail" document_id %}"
                         class="list-group-item">{{document_title}} ({{document_date}})<br />
