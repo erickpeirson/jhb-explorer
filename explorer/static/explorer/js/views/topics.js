@@ -475,7 +475,6 @@ $(document).ready(function() {
                 } else {    // TODO: Number of topics shouldn't be hardcoded.
 
                     var randomNode = cy.$('#' + Math.floor((Math.random() * 199)));
-                    console.log(randomNode);
                     // Mimic user selection of the topic.
                     randomNode.trigger('tap');
 
@@ -484,7 +483,7 @@ $(document).ready(function() {
         });
     }
 
-    buildGraph(startYear, endYear);
+
 
     // Turn on all tooltips on the page.
     $(function () {
@@ -783,33 +782,7 @@ $(document).ready(function() {
     }
 
 
-    d3.json("/topics/?data=time", function(data) {
 
-        n = data.topics.length
-        m = data.topics[0].values.length; // number of samples per layer
-
-        var dataLayer = function(dt) {
-            var a = [], i;
-            for (i = 0; i < m; ++i) a[i] = 0;
-
-            var series = a.map(function(d, i) {
-
-                return {
-                    x: i,
-                    y0: 0,
-                    y: data.topics[dt].values[i]
-                };
-            });
-            return series;
-        }
-        layers = stack(d3.range(data.topics.length).map(function(dt) { return dataLayer(dt); })).map(function(l, i) { return {t: i, layer:l }; });
-
-        years = data.topics[0].dates;
-        draw(layers);
-
-        d3.select(window).on('resize', resize);
-
-    });
 
 
 
@@ -869,8 +842,37 @@ $(document).ready(function() {
             .addTo(map);
     });
 
+    // First load the map, then load the time-stream, then load the graph.
     map.on('style.load', function() {
+        d3.json("/topics/?data=time", function(data) {
 
+            n = data.topics.length
+            m = data.topics[0].values.length; // number of samples per layer
+
+            var dataLayer = function(dt) {
+                var a = [], i;
+                for (i = 0; i < m; ++i) a[i] = 0;
+
+                var series = a.map(function(d, i) {
+
+                    return {
+                        x: i,
+                        y0: 0,
+                        y: data.topics[dt].values[i]
+                    };
+                });
+                return series;
+            }
+            layers = stack(d3.range(data.topics.length).map(function(dt) { return dataLayer(dt); })).map(function(l, i) { return {t: i, layer:l }; });
+
+            years = data.topics[0].dates;
+            draw(layers);
+
+            d3.select(window).on('resize', resize);
+
+            buildGraph(startYear, endYear);
+
+        });
     });
 
 
