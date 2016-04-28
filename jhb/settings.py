@@ -154,7 +154,7 @@ port = es.port or 80
 
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'ENGINE': 'explorer.elasticsearch_backends.JHBElasticsearch2SearchEngine',
         'URL': es.scheme + '://' + es.hostname + ':' + str(port),
         'INDEX_NAME': 'documents',
     },
