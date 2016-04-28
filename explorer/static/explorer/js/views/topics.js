@@ -474,7 +474,8 @@ $(document).ready(function() {
                 // If no node is pre-selected, choose a node at random.
                 } else {    // TODO: Number of topics shouldn't be hardcoded.
 
-                    var randomNode = cy.$('#' + Math.floor((Math.random() * 200)));
+                    var randomNode = cy.$('#' + Math.floor((Math.random() * 199)));
+                    console.log(randomNode);
                     // Mimic user selection of the topic.
                     randomNode.trigger('tap');
 

@@ -22,7 +22,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.environ.get('SECRET_KEY', '(z!a=e2w+6l4lmh#&5=!0gfj&l8=+0m6syech$$7*$v1bp^i=&')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = eval(os.environ.get('DEBUG', 'False'))
+# DEBUG = eval(os.environ.get('DEBUG', 'False'))
+DEBUG=True
 
 ALLOWED_HOSTS = ['*']
 
@@ -77,21 +78,6 @@ GRAPH_MODELS = {
 
 ROOT_URLCONF = 'jhb.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
 
 WSGI_APPLICATION = 'jhb.wsgi.application'
 
