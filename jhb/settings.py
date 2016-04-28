@@ -145,13 +145,21 @@ CACHES = {
     }
 }
 
+es = urlparse(os.environ.get('SEARCHBOX_URL') or 'http://127.0.0.1:9200/')
+port = es.port or 80
+
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'explorer.elasticsearch_backends.JHBElasticsearch2SearchEngine',
-        'URL': os.environ.get('SEARCHBOX_URL', 'http://127.0.0.1:9200/'),
-        'INDEX_NAME': 'haystack',
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': es.scheme + '://' + es.hostname + ':' + str(port),
+        'INDEX_NAME': 'documents',
     },
 }
+
+if es.username:
+    HAYSTACK_CONNECTIONS['default']['KWARGS'] = {"http_auth": es.username + ':' + es.password}
+
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 VOGONWEB = 'http://www.vogonweb.net'
 
