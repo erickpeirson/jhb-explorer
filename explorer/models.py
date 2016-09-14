@@ -122,6 +122,13 @@ class Topic(models.Model):   # Done
     def top_term_assignments(self):
         return self.assigned_to.order_by('-weight')[:100]
 
+    @property
+    def prominence(self):
+        """
+        This should be replaced with something more interesting.
+        """
+        return 1.*self.on_pages.count()
+
 
 
 class TopicAssociation(models.Model):
@@ -309,9 +316,21 @@ class Location(models.Model):
 
 class DocumentLocation(models.Model):
     """
+    Captures a thematic (content) relation between a :class:`.Document` and a
+    :clas:`.Location`
     """
     document = models.ForeignKey('Document', related_name='locations')
     location = models.ForeignKey('Location', related_name='documents')
+
+
+class AuthorLocation(models.Model):
+    """
+    Captures the :class:`.Location` of an :class:`.Author` at the time of
+    publication of a :class:`.Document`\.
+    """
+    document = models.ForeignKey('Document', related_name='author_locations')
+    author = models.ForeignKey('Author', related_name='locations')
+    location = models.ForeignKey('Location', related_name='author_locations')
 
 
 class Entity(models.Model):

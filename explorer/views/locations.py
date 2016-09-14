@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse
 from django.core.cache import caches
 from django.template import RequestContext, loader
+from django.conf import settings
 
 from explorer.models import Document, Location
 
@@ -47,6 +48,7 @@ def locations(request):
             'start': start,
             'end': end,
             'active': 'locations',
+            'MAPBOX_TOKEN': settings.MAPBOX_TOKEN,
         }
         if topic:
             context_data.update({'topic': topic})

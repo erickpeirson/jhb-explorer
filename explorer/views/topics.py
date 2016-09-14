@@ -26,6 +26,7 @@ def topics_json(request):
     Generates a JSON response containing topic data.
     """
     queryset = Topic.objects.all()
+
     serializer = TopicSerializer(queryset, many=True)
     renderer = JSONRenderer()
     response_data = renderer.render(serializer.data,

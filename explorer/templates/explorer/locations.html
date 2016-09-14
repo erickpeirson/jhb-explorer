@@ -3,8 +3,17 @@
 {% load staticfiles %}
 
 {% block extrahead %}
-<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.js'></script>
-<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.css' rel='stylesheet' />
+<script src='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.js'></script>
+<link href='https://api.mapbox.com/mapbox.js/v2.4.0/mapbox.css' rel='stylesheet' />
+
+
+<script src='{% static "explorer/js/arc.js" %}'></script>
+<script src='{% static "explorer/js/Leaflet.Arc.min.js" %}'></script>
+<script src='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/leaflet.markercluster.js'></script>
+<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.css' rel='stylesheet' />
+<link href='https://api.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.Default.css' rel='stylesheet' />
+
+
 {% endblock %}
 
 {% block content %}
@@ -36,7 +45,7 @@
         </div>
     </div>
     <div class="col-sm-4">
-        <div class="panel" id="document-list-panel" style="visibility: hidden;">
+        <div class="panel panel-transparent" id="document-list-panel" style="visibility: hidden;">
             <div class="panel-heading" id="document-list-heading">
                 <span class="h4">Articles set in
                     <a id="document-list-heading-link"
@@ -73,6 +82,9 @@ var start = {{ start }},
     end = {{ end }},
     topic = "{{ topic }}",
     dataLocationURL = "{{ data }}";
+
+L.mapbox.accessToken = '{{ MAPBOX_TOKEN }}';
+
 </script>
 <script src="{% static 'explorer/js/views/locations.js' %}"></script>
 

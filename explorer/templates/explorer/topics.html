@@ -20,48 +20,72 @@
 <!-- <div class="container-fluid">
     <div class="panel"> -->
 
-    <div class="h3" style="margin-top: 0px;">The Topic Model
-        <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
-            <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="left" title="What am I looking at?"></span>
-        </button>
-    </div>
 
     <!-- First row -->
     <div class="row">
         <!-- Topic network visualization -->
         <div class="col-sm-7">
-            <div class="panel" id="networkVisContainer" style="padding: 1px;">
-                <div id="cyTopics" style="height: 300px;"></div>
-                <p class="text text-muted text-small">
+
+            <button type="button" class="btn btn-default btn-sm" aria-label="Info" data-toggle="modal" data-target="#infoModal">
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true" data-toggle="tooltip" data-placement="right" title="What am I looking at?"></span>
+            </button>
+            <button
+                id="listViewButton"
+                type="button"
+                class="btn btn-primary btn-sm pull-right">
+                <span class="glyphicon glyphicon-th-list"></span>
+            </button>
+            <button
+                id="graphViewButton"
+                type="button"
+                class="btn btn-primary btn-sm pull-right"
+                style="display: none;">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </button>
+
+
+            <div class="panel panel-transparent" id="networkVisContainer" style="padding: 1px;">
+                <div id="cyTopics" style="height: 600px;"></div>
+                <p class="text text-small">
                     Use your mouse wheel or track pad to zoom in and out. Click on a node to view
                     details about that topic.
                 </p>
+            </div>
+            <div class="panel panel-transparent"
+                id="topicListContainer"
+                style="display: none; max-height: 600px; overflow-y: scroll;">
+                <ul id="listViewList"
+                    class="list-group">
+                </ul>
             </div>
         </div>
 
         <!-- Topic terms cluster -->
         <div class="col-sm-5">
             <div class="panel panel-transparent topic-details" style="visibility: hidden;">
-                <div class="panel-heading clearfix">
-                    <a id="topic-details-1-link" type="button" href="" class="pull-right" aria-label="Details"><span class="h5" id="topic-details-heading-1"></span></a>
-                </div>
-                <div class="panel-body" id="topic-details-terms-1" style="text-align: center; vertical-align: middle;">
-                    <ul id="topic-details-terms-1-list" class="topic-details-terms-list">
+                <div class="panel-body"
+                    id="topic-details-terms-1"
+                    style="text-align: center; vertical-align: middle; padding: 2px;">
+                    <ul id="topic-details-terms-1-list"
+                        class="topic-details-terms-list">
                     </ul>
+                    <a id="topic-details-1-link"
+                        type="button"
+                        href=""
+                        class="pull-right"
+                        aria-label="Details">
+                        <span class="h5" id="topic-details-heading-1"></span>
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Second row -->
-    <div class="row">
-        <div class="col-sm-7">
+
             <!-- Articles that contain topic. -->
-            <div class="panel topic-details" style="visibility: hidden;">
+            <div class="panel panel-transparent topic-details" style="visibility: hidden;">
                 <div class="panel-heading h4" id="topic-details-documents-heading">
-                    Articles about <strong id="topic-details-documents-heading-label"></strong> (<span id="topic-details-documents-heading-qualifier"></span>)
+                    Articles about this topic (<span id="topic-details-documents-heading-qualifier"></span>)
                 </div>
-                <div style="max-height: 250px; overflow-y: scroll;">
+                <div style="max-height: 350px; overflow-y: scroll;">
                     <table class="table small-text table-condensed">
                         <thead>
                             <tr>
@@ -77,13 +101,13 @@
                 <!-- <ul class="list-group h6"  style=" max-height: 200px;">
                 </ul> -->
             </div>
+
         </div>
-        <div class="col-sm-5">
-            <!-- Geographic visualization. -->
-            <div class="panel">
-                <div id="map" style="height: 300px;"></div>
-            </div>
-        </div>
+    </div>
+
+    <!-- Second row -->
+    <div class="row">
+
     </div>
 
     {% endblock %}

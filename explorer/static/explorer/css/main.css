@@ -25,6 +25,11 @@
     padding-bottom: 4px;
 }
 
+.topic-list-item.selected {
+    background-color: rgba(255, 165, 0, 0.5) !important;
+}
+
+
 .topic-details>.panel-heading {
     padding: 5px 10px 5px 5px;
     margin-top: 5px;
@@ -53,6 +58,19 @@ svg a:hover {
     overflow-x: hidden;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+
+table {
+    border: 0px;
+}
+tr {
+    border: 0px;
+}
+
+td {
+    border: 0px;
+    border-top: 0px !important;
 }
 
 .table {

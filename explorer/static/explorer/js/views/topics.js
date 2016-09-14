@@ -34,111 +34,7 @@ var svg,
     muteLeft,
     muteRight,
     brushg;
-
-var map;
-
-var drawMap = function() {
-    if (map.getSource('articles') != undefined) {
-        map.removeSource('articles');
-    }
-    // Add a new source from our GeoJSON data and set the
-    // 'cluster' option to true.
-    map.addSource("articles", {
-        type: "geojson",
-        // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-        // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-        data: '/locations/?data=json&start=' + startYear + '&end=' + endYear + '&topic=' + selectedTopic[0],
-        cluster: true,
-        clusterMaxZoom: 14, // Max zoom to cluster points on
-        clusterRadius: 50 // Radius of each cluster when clustering points (defaults to 50)
-    });
-
-
-    // map.addLayer({
-    //     "id": "non-cluster-markers",
-    //     "type": "symbol",
-    //     "source": "articles",
-    //     "layout": {
-    //         "icon-image": "circle-15",
-    //     }
-    //
-    // });
-    //
-    // var layers = [
-    //     [150, 'rgb(17, 119, 136)'],
-    //     [20, 'rgb(168, 26, 0)'],
-    //     [0, 'rgb(153, 102, 34)']
-    // ];
-    //
-    // layers.forEach(function (layer, i) {
-    //     map.addLayer({
-    //         "id": "cluster-" + i,
-    //         "type": "circle",
-    //         "source": "articles",
-    //         "paint": {
-    //             "circle-color": layer[1],
-    //             "circle-radius": 18
-    //         },
-    //
-    //         "filter": i == 0 ?
-    //             [">=", "point_count", layer[0]] :
-    //             ["all",
-    //                 [">=", "point_count", layer[0]],
-    //                 ["<", "point_count", layers[i - 1][0]]]
-    //     });
-    // });
-    //
-    // // Add a layer for the clusters' count labels
-    // map.addLayer({
-    //     "id": "cluster-count",
-    //     "type": "symbol",
-    //     "source": "articles",
-    //     "layout": {
-    //         "text-field": "{point_count}",
-    //         "text-font": [
-    //                 "DIN Offc Pro Medium",
-    //                 "Arial Unicode MS Bold"
-    //             ],
-    //         "text-size": 12
-    //     }
-    // });
-
-    var layers = [
-        [0, 'green'],
-        [5, 'orange'],
-        [20, 'red']
-    ];
-
-    layers.forEach(function (layer, i) {
-        map.addLayer({
-            "id": "cluster-" + i,
-            "type": "circle",
-            "source": "articles",
-            "paint": {
-                "circle-color": layer[1],
-                "circle-radius": 50,
-                "circle-blur": 2 // blur the circles to get a heatmap look
-            },
-            "filter": i === layers.length - 1 ?
-                [">=", "point_count", layer[0]] :
-                ["all",
-                    [">=", "point_count", layer[0]],
-                    ["<", "point_count", layers[i + 1][0]]]
-        }, 'waterway-label');
-    });
-
-    map.addLayer({
-        "id": "non-cluster-markers",
-        "type": "circle",
-        "source": "articles",
-        "paint": {
-            "circle-color": 'rgba(0,255,0,0.5)',
-            "circle-radius": 20,
-            "circle-blur": 2
-        },
-        "filter": ["!=", "cluster", true]
-    }, 'waterway-label');
-}
+var topicWeights = {};
 
 /**
   * When the user clicks on a node, or somehow otherwise selects a topic, we
@@ -193,13 +89,60 @@ var selectNode = function(node, duration) {
 
     // Center and fit the selected node and its direct neighbors.
     var centerOn = directlyConnected.add(node);
-    cy.animate({fit: {eles: centerOn}}, {duration: duration});
+    cy.animate({fit: {eles: centerOn, padding: 100}}, {duration: duration});
 
-    drawMap();
 }
+
+var triggerListView = function(e) {
+    // Swap buttons.
+    $('#listViewButton').css('display', 'none');
+    $('#graphViewButton').css('display', 'block');
+
+    // Show list view.
+    $('#topicListContainer').css('display', 'block');
+    $('#networkVisContainer').height(0);
+    $('#networkVisContainer').css('height', 0);
+    $('#networkVisContainer').css('visibility', 'hidden');
+
+    $('.topic-list-item').removeClass('selected');
+    $('#topic-list-item-' + selectedTopic[0]).addClass('selected');
+
+}
+
+var triggerGraphView = function(e) {
+
+    $('#graphViewButton').css('display', 'none');
+    $('#listViewButton').css('display', 'block');
+
+    // Show graph view.
+    $('#networkVisContainer').height(600);
+    $('#networkVisContainer').css('height', 600);
+    $('#topicListContainer').css('display', 'none');
+    $('#networkVisContainer').css('visibility', 'visible');
+
+}
+
+
+var topicData = {},
+    activateTopic,
+    topicProminence = {};
+var top10;
 
 // When the page is loaded, request the topic colocation network.
 $(document).ready(function() {
+    $.ajax('?data=json', {
+        success: function(data) {
+            data.forEach(function(elem) {
+                topicProminence[elem.id] = elem.prominence;
+            });
+        }
+    });
+
+
+
+    $('#listViewButton').click(triggerListView);
+    $('#graphViewButton').click(triggerGraphView);
+
     var adjustGraphHeight = function(e) {
         var graphWidth = $('#cyTopics').width();
         if (graphWidth < 400) {
@@ -214,9 +157,10 @@ $(document).ready(function() {
         // While awaiting the graph data, a spinner is shown in the
         //  network visualization panel.
         $('#networkVisContainer').spin(opts);
-
+        $('#topicListContainer').spin(opts);
         $.ajax('?data=graph&startyear=' + startYear + '&endyear=' + endYear, {
             success: function(elements) {
+
                 // Stop the spinner.
                 $('#networkVisContainer').spin(false);
 
@@ -227,7 +171,60 @@ $(document).ready(function() {
                 var minNodeWeight = 1.0;
                 var maxNodeWeight = 0.0;
 
+
+                $('#listViewList').empty();
+                var getWeight = function(tid) {
+                    var _w = topicWeights[Number(tid)].reduce(function(i, e) {
+
+                        if (Number(startYear) <= Number(e.date) && Number(e.date) < Number(endYear)) {
+                            return i + e.value;
+                        } else {
+                            return i;
+                        }
+                    }, 0);
+                    var _s = topicWeights[Number(tid)].reduce(function(i, e) { return i + e.value; }, 0);
+                    // console.log(_w, _s);
+                    return _w/_s;
+                }
+                var maxWeight = Math.max.apply(Math, elements.map(function(o) {
+                    if (o.data.label) {
+                        return getWeight(o.data.id);
+                    }  else {
+                        return 0.
+                    }
+                }));
+
+                function sort_by_weight(a, b) {
+                    if (a.data.label && b.data.label) {  // Node.
+                        var w_a = getWeight(a.data.id);///topicProminence[Number(a.data.id)];
+                        var w_b = getWeight(b.data.id);///topicProminence[Number(b.data.id)];
+                        return ((w_a > w_b) ? -1 : (w_a < w_b) ? 1 : 0);
+                    } else {    // Edge.
+                        return -1;
+                    }
+                }
+
+                elements.sort(sort_by_weight);
+                top10 = [];
                 elements.forEach(function(elem) {
+                    // We only want nodes; nodes are the only elements with
+                    //  labels.
+
+                    if (elem.data.label) {
+                        if (top10.length < 20) top10.push(elem.data.id);
+                        topicData[elem.data.id] = elem.data;
+                        // console.log(topicProminence[elem.data.id]);
+                        var w = 100*getWeight(elem.data.id)/maxWeight;///topicProminence[Number(elem.data.id)];
+
+                        // Build the list view.
+                        var progress_elem = '<div class="col-xs-2"><div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' + w + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + w + '%;"><span class="sr-only">' + w + '%</span></div></div></div>';
+                        var topic_list_elem = '<a href="javascript:activateTopic('+elem.data.id+')" class="list-group-item topic-list-item" id="topic-list-item-'+elem.data.id+'"><div class="row"><div class="col-xs-10">' + elem.data.label + '</div> '+progress_elem+'</div></a>';
+
+                        $('#listViewList').append(topic_list_elem);
+
+                    }
+
+                    // Normalize weights for graph.
                     var weight = Number(elem.data.weight);
                     if (elem.data.source) {  // Edge.
                         if (weight > maxEdgeWeight) maxEdgeWeight = weight;
@@ -238,6 +235,8 @@ $(document).ready(function() {
                     }
                 });
 
+                $('#topicListContainer').spin(false);
+
                 minNodeWeight = Number(minNodeWeight.toPrecision(4));
                 maxNodeWeight = Number(maxNodeWeight.toPrecision(4));
                 minEdgeWeight = Number(minEdgeWeight.toPrecision(4));
@@ -246,7 +245,7 @@ $(document).ready(function() {
                 cy = cytoscape({
                     container: $('#cyTopics'),
                     elements: elements,
-                    minZoom: 0.25,
+                    minZoom: 0.1,
                     maxZoom: 3,
                     panningEnabled: true,
                     style: [    // The stylesheet for the graph.
@@ -343,8 +342,10 @@ $(document).ready(function() {
                     }
                 });
 
-                var displayTopicDetails = function(node) {
-                    var nodeData = node.data();
+                var displayTopicDetails = function(topic_id) {
+                    var nodeData = topicData[topic_id];
+
+                    // var nodeData = node.data();
                     $('.topic-details').css('visibility', 'visible');
 
                     /**
@@ -431,26 +432,37 @@ $(document).ready(function() {
                     d3.selectAll('.stream').style('opacity', 1.0);
                 }
 
-                // When a node is clicked, information about the corresponding
-                //  topic is displayed in a neighboring panel.
-                cy.on('tap', 'node', function(event) {
+                activateTopic = function(topic_id) {
                     clearSelectedTopics();
                     clearTopicDetails();
-
-                    var node = event.cyTarget;  // The node that was clicked.
-                    selectedTopic.push(node._private.data.id);
-                    displayTopicDetails(node);
-
+                    selectedTopic.push(topic_id);
+                    displayTopicDetails(topic_id);
                     d3.selectAll('.stream').style('opacity', 0.1);
 
-                    var streamElem = d3.select('#topic-stream-area-' + node._private.data.id);
+                    $('.topic-list-item').removeClass('selected');
+                    $('#topic-list-item-' + topic_id).addClass('selected');
+
+                    var streamElem = d3.select('#topic-stream-area-' + topic_id);
                     streamElem.style('opacity', 1.0);
                     redrawStream(streamElem, magnifyStream(streamElem.data()));
 
-                    selectNode(node, 750);
+                    selectNode(cy.$('#' + topic_id), 750);
+                }
 
-                });
+                var handleNodeTap = function(event, activate) {
+                    var node = event.cyTarget;  // The node that was clicked.
+                    var topic_id = node._private.data.id;
+
+                    activateTopic(topic_id);
+                    // selectNode(node, 750);
+                }
+
+                // When a node is clicked, information about the corresponding
+                //  topic is displayed in a neighboring panel.
+                cy.on('tap', 'node', handleNodeTap);
                 cy.edges().unselectify();
+
+
 
                 // When the esc key is pressed, clear all selections.
                 $(document).keyup(function(e) {
@@ -469,12 +481,14 @@ $(document).ready(function() {
                     selectedTopic.forEach(function(topic) {
                         selectNode(cy.$('#' + topic), 0);
                     });
-                    displayTopicDetails(cy.$('#' + selectedTopic[0]));
-
+                    displayTopicDetails(selectedTopic[0]);  //cy.$('#' + selectedTopic[0])
+                    $('.topic-list-item').removeClass('selected');
+                    $('#topic-list-item-' + selectedTopic[0]).addClass('selected');
                 // If no node is pre-selected, choose a node at random.
                 } else {    // TODO: Number of topics shouldn't be hardcoded.
 
-                    var randomNode = cy.$('#' + Math.floor((Math.random() * 199)));
+
+                    var randomNode = cy.$('#' + top10[Math.floor((Math.random() * 10))]);
                     // Mimic user selection of the topic.
                     randomNode.trigger('tap');
 
@@ -633,10 +647,12 @@ $(document).ready(function() {
                 .attr("dx", height/2)
                 .attr("dy", "1.7em");
 
+
         // Reselect node.
         selectedTopic.forEach(function(topic) {
             cy.$('#' + topic).select();
         });
+
     }
 
     var draw = function() {
@@ -786,65 +802,19 @@ $(document).ready(function() {
 
 
 
-    // Provide your access token
-    mapboxgl.accessToken = 'pk.eyJ1IjoiZXJpY2twZWlyc29uIiwiYSI6ImNpbjIzOHVpMjBiY3l2cWx1b2syaXZnemkifQ.7_5I3_PzXo9gbdS8v1o97A';
-
-    map = new mapboxgl.Map({
-        container: 'map', // container id
-        style: 'mapbox://styles/erickpeirson/cin20zapx005pafncyt65cgx9', //stylesheet location
-        center: [-25, 40], // starting position
-        zoom: 0,
-        minZoom: 0,
-        maxZoom: 7,
-    });
-
-    map.on('click', function (e) {
-        // Select only non-cluster points.
-        var features = map.queryRenderedFeatures(e.point, {filter: ["==", "class", "location"]});
-
-        if (!features.length) {
-            return;
-        }
-
-        var feature = features[0];
-
-        $('#document-list').empty();
-        $('#document-list-panel').css('visibility', 'visible');
-        $('#document-list-heading-label').text(feature.properties.label);
-        $.get('/locations/' + feature.properties.id + '/?data=json', {}, function(data) {
-            data.documents.forEach(function(doc) {
-                $('#document-list').append('<a class="topic-details-document list-group-item" href="/documents/'+ doc.id +'/"><span class="label label-primary">' + doc.date + '</span> '+ doc.title +'</a>');
-            });
-        });
-
-    });
-
-    var popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false
-    });
-
-    map.on('mousemove', function (e) {
-        var features = map.queryRenderedFeatures(e.point, {filter: ["==", "class", "location"]});
-        map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
-
-        if (!features.length) {
-            popup.remove();
-            return;
-        }
-
-        var feature = features[0];
-
-        // Populate the popup and set its coordinates
-        // based on the feature found.
-        popup.setLngLat(feature.geometry.coordinates)
-            .setHTML(feature.properties.label)
-            .addTo(map);
-    });
-
     // First load the map, then load the time-stream, then load the graph.
-    map.on('style.load', function() {
+    // map.on('style.load', function() {
         d3.json("/topics/?data=time", function(data) {
+            data.topics.forEach(function(elem) {
+                var theseWeights = [];
+                elem.dates.forEach(function(date, i) {
+                    theseWeights.push({
+                        'date': date,
+                        'value': elem.values[i]
+                    });
+                });
+                topicWeights[elem.topic] = theseWeights;
+            });
 
             n = data.topics.length
             m = data.topics[0].values.length; // number of samples per layer
@@ -873,7 +843,7 @@ $(document).ready(function() {
             buildGraph(startYear, endYear);
 
         });
-    });
+    // });
 
 
 });
