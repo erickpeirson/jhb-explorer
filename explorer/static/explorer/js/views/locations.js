@@ -16,7 +16,8 @@ var display_articles_for_location = function(e) {
     $('#document-list-panel').css('visibility', 'visible');
     $('#document-list-heading-label').text(feature.properties.label);
     // TODO: This shouldn't be hardcoded.
-    $('#document-list-heading-link').attr('href', 'http://geonames.org/' + feature.properties.id);
+    $('#document-list-heading-link').attr('href', 'http://geonames.org/' + feature.properties.id)
+        .attr('target', '_blank');
     $.get('/locations/' + feature.properties.id + '/?data=json', {}, function(data) {
         // TODO: use a template.
         data.documents.forEach(function(doc) {
