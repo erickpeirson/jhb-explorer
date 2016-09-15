@@ -603,6 +603,8 @@ $(document).ready(function() {
         function brushend() {
             var s = brush.extent();
             s = [Math.round(s[0]), Math.round(s[1])];
+            if (s[0] == s[1]) s[1] += 1;
+            // brush.extent(s);
             d3.select(this).transition()
                 .call(brush.extent(s));
 
@@ -762,6 +764,9 @@ $(document).ready(function() {
         function brushend() {
             var s = brush.extent();
             s = [Math.round(s[0]), Math.round(s[1])];
+            console.log(s);
+            if (s[0] == s[1]) s[1] += 1;
+            // brush.extent(s);
             d3.select(this).transition()
                 .call(brush.extent(s));
 

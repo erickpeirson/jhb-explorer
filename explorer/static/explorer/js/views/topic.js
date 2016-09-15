@@ -170,6 +170,7 @@ $(document).ready(function() {
         function brushend() {
             var s = brush.extent();
             s = [Math.round(s[0]), Math.round(s[1])];
+            if (s[0] == s[1]) s[1] += 1;
             d3.select(this).transition()
                 .call(brush.extent(s));
 

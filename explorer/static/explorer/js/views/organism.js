@@ -67,6 +67,7 @@ var redraw = function () {
 
     function brushend() {
         var s = [Math.round(brush.extent()[0]), Math.round(brush.extent()[1])];
+        if (s[0] == s[1]) s[1] += 1;
         d3.select(this).transition()
             .call(brush.extent(s));
 
@@ -210,7 +211,7 @@ var draw = function() {
 
     function brushend() {
         var s = [Math.round(brush.extent()[0]), Math.round(brush.extent()[1])];
-
+        if (s[0] == s[1]) s[1] += 1;
         d3.select(this).transition()
             .call(brush.extent(s));
 
