@@ -12,13 +12,16 @@
         <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li{% if active == 'home' or not active %} class="active"{% endif %}><a href="{% url "home" %}">Home</a></li>
-                <li{% if active == 'topics' %} class="active"{% endif %}><a href="{% url "topics" %}">Topics</a></li>
-                <li{% if active == 'organisms' %} class="active"{% endif %}><a href="{% url "organisms" %}">Organisms</a></li>
-                <li{% if active == 'locations' %} class="active"{% endif %}><a href="{% url "locations" %}">Locations</a></li>
+                <li{% if active == 'locations' %} class="active"{% endif %}><a href="{% url "locations" %}">Geography</a></li>
+                <li{% if active == 'organisms' %} class="active"{% endif %}><a href="{% url "organisms" %}">Biology</a></li>
+                <li{% if active == 'topics' %} class="active"{% endif %}><a href="{% url "topics" %}">Thematic Content</a></li>
+            </ul>
+            <ul class="nav navbar-nav" style="margin-left: 50px; border-left: 1px solid #c5ba97;">
                 <li{% if active == 'about' %} class="active"{% endif %}><a href="{% url 'about' %}">About</a></li>
                 <li{% if active == 'methods' %} class="active"{% endif %}><a href="{% url 'methods' %}">Methods</a></li>
-                <li>{{ fdsa}}</li>
             </ul>
         </div>
+
+
     </div>
 </nav>

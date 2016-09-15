@@ -78,17 +78,17 @@ class JHBElasticsearch2SearchBackend(Elasticsearch2SearchBackend):
         if end_offset is not None and end_offset > start_offset:
             search_kwargs['size'] = end_offset - start_offset
 
-        try:
-            raw_results = self.conn.search(body=search_kwargs,
-                                           index=self.index_name,
-                                           doc_type='modelresult',
-                                           _source=True)
-        except elasticsearch.TransportError as e:
-            if not self.silently_fail:
-                raise
-
-            self.log.error("Failed to query Elasticsearch using '%s': %s", query_string, e, exc_info=True)
-            raw_results = {}
+        # try:
+        raw_results = self.conn.search(body=search_kwargs,
+                                       index=self.index_name,
+                                       doc_type='modelresult',
+                                       _source=True)
+        # except elasticsearch.TransportError as e:
+        #     if not self.silently_fail:
+        #         raise
+        #
+        #     self.log.error("Failed to query Elasticsearch using '%s': %s", query_string, e, exc_info=True)
+        #     raw_results = {}
 
         return self._process_results(raw_results,
                                      highlight=kwargs.get('highlight'),

@@ -376,9 +376,9 @@ $(document).ready(function() {
                         data.documents.forEach(function(doc) {
                             $('#topic-details-documents')
                                 .append('<tr class="h6">' +
-                                    '<td>' + doc.pubdate + '</td>' +
+                                    '<td class="col-xs-1">' + doc.pubdate + '</td>' +
                                     '<td><a class="" href="/documents/'+ doc.id +'/?topic='+ nodeData.id +'">'+ doc.title +'</a></td>'+
-                                    '<td><div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' + doc.weight + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + doc.weight + '%;"><span class="sr-only">' + doc.weight + '%</span></div></div></td>' +
+                                    '<td class="col-xs-2"><div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' + doc.weight + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + doc.weight + '%;"><span class="sr-only">' + doc.weight + '%</span></div></div></td>' +
                                     '</tr>');
                         });
                     });

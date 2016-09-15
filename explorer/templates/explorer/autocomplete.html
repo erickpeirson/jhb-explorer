@@ -21,18 +21,13 @@
 
        // Watch the input box.
        this.query_box.on('keyup', function() {
-           if (self.waiting) {
-               return false;
-           } else {
-               self.waiting = true;
-           }
+           
            setTimeout(function() {
                var query = self.query_box.val();
                var model = self.model_input.val();
 
                if(query.length < self.minimum_length) {
                    $('.ac-results').remove();
-
                    return false;
                }
 
@@ -56,11 +51,12 @@
 
    Autocomplete.prototype.fetch = function(query, model) {
        var self = this;
-       self.waiting = true;
        var payload = {
            'q': query,
        }
        if (model) payload['model'] = model;
+       if (self.waiting) return;
+       self.waiting = true;
        $.ajax({
            url: this.url
            , data: payload

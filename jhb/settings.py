@@ -110,8 +110,8 @@ DATABASES = {
     }
 }
 
-import dj_database_url
-DATABASES['default'] =  dj_database_url.config()
+# import dj_database_url
+# DATABASES['default'] =  dj_database_url.config()
 
 
 # Internationalization
@@ -156,9 +156,9 @@ es = urlparse(os.environ.get('SEARCHBOX_URL') or 'http://127.0.0.1:9200/')
 port = es.port or 80
 
 HAYSTACK_CONNECTIONS = {
-    'default': {
-        'ENGINE': 'explorer.elasticsearch_backends.JHBElasticsearch2SearchEngine',
-        'URL': es.scheme + '://' + es.hostname + ':' + str(port),
+    'default': {   # 'explorer.elasticsearch_backends.JHBElasticsearch2SearchEngine',
+        'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
+        'URL': str(es.scheme + '://' + es.hostname + ':' + str(port)),
         'INDEX_NAME': 'jhb',
     },
 }

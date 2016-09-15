@@ -1,118 +1,117 @@
-from haystack import indexes
 from explorer.models import *
+from elasticsearch_dsl import DocType, String, Date, Integer
+import datetime
+
+class SDocument(DocType):
+    label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
+    body = String(analyzer='snowball')
+    authors = String(index='not_analyzed')
+    topics = String(index='not_analyzed')
+    model = String(index='not_analyzed')
+    publication_date = Date()
+
+    class Meta:
+        index = 'jhb_index'
 
 
-class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.EdgeNgramField(document=True, use_template=True)
-    title = indexes.EdgeNgramField(model_attr='title')
-    result_type = indexes.FacetCharField()
-    authors = indexes.FacetMultiValueField()
-    topics = indexes.FacetMultiValueField()
-    publication_date = indexes.FacetIntegerField(model_attr='publication_date')
+class STopic(DocType):
+    label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
+    body = String(analyzer='snowball')
+    model = String(index='not_analyzed')
+    documents = Integer(index='not_analyzed')
 
-    def prepare_authors(self, instance):
-        return [', '.join([author.surname, author.forename]).title()
-                for author in instance.authors.all()]
-
-    def prepare_topics(self, instance):
-        return []
-
-    def prepare_result_type(self, instance):
-        return instance.__class__.__name__
-
-    def get_model(self):
-        return Document
+    class Meta:
+        index = 'jhb_index'
 
 
-class TopicIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.EdgeNgramField(document=True, use_template=True)
-    title = indexes.EdgeNgramField()
-    result_type = indexes.FacetCharField()
+class SAuthor(DocType):
+    label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
+    body = String(analyzer='snowball')
+    model = String(index='not_analyzed')
+    topics = Integer(index='not_analyzed')
+    documents = Integer(index='not_analyzed')
 
-    def prepare_title(self, instance):
-        """
-        race races human racial hunt
-        """
-        return instance.__unicode__()
-
-    def prepare_result_type(self, instance):
-        return instance.__class__.__name__
-
-    def get_model(self):
-        return Topic
+    class Meta:
+        index = 'jhb_index'
 
 
-class AuthorIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.EdgeNgramField(document=True)
-    title = indexes.EdgeNgramField()
-    result_type = indexes.FacetCharField()
+class STaxon(DocType):
+    label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
+    body = String(analyzer='snowball')
+    model = String(index='not_analyzed')
+    documents = Integer(index='not_analyzed')
+    rank = String(index='not_analyzed')
+    division = String(index='not_analyzed')
 
-    def prepare(self, instance):
-        data = super(AuthorIndex, self).prepare(instance)
-        data['boost'] = 2
-        return data
-
-    def prepare_text(self, instance):
-        document = u' '.join([instance.forename, instance.surname])
-        document += u'\n' + u'\n'.join([title for title in instance.works.all().values_list('title', flat=True)])
-
-        return document.lower()
-
-    def prepare_result_type(self, instance):
-        return instance.__class__.__name__
-
-    def prepare_title(self, instance):
-        """
-        Forename M Surname.
-        """
-        return u' '.join([instance.forename, instance.surname]).title()
-
-    def get_model(self):
-        return Author
+    class Meta:
+        index = 'jhb_index'
 
 
-class TaxonIndex(indexes.SearchIndex, indexes.Indexable):
-    text = indexes.EdgeNgramField(document=True)
-    title = indexes.EdgeNgramField()
-    result_type = indexes.FacetCharField()
+class SLocation(DocType):
+    label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
+    body = String(analyzer='snowball')
+    model = String(index='not_analyzed')
+    documents = Integer(index='not_analyzed')
 
-    def prepare_result_type(self, instance):
-        return instance.__class__.__name__
-
-    def prepare_text(self, instance):
-        document = instance.scientific_name
-        document += u'\n' + u'\n'.join([name.display_name for name in instance.names.all()])
-        return document
-
-    def prepare_title(self, instance):
-        """
-        Agrostis tenuis
-        """
-        return instance.scientific_name
-
-    def get_model(self):
-        return Taxon
+    class Meta:
+        index = 'jhb_index'
 
 
-class LocationIndex(indexes.SearchIndex, indexes.Indexable):
-    """
-    Index :class:`.Location`\s by name.
-    """
-    text = indexes.EdgeNgramField(document=True)
-    title = indexes.EdgeNgramField()
-    result_type = indexes.FacetCharField()
+def _document_from_model_instance(document):
+    sdocument = SDocument(
+        meta={'id': document.id},
+        label=document.title,
+        body=document.title,
+        model='Document',
+        publication_date=datetime.datetime(document.publication_date, 1, 1))
+    sdocument.save()
+    return sdocument
 
-    def prepare_result_type(self, instance):
-        return instance.__class__.__name__
 
-    def prepare_text(self, instance):
-        return instance.label + u'\n' + instance.alternate_names
+def _topic_from_model_instance(topic):
+    stopic = STopic(
+        meta={'id': topic.id},
+        label=topic.label,
+        body=topic.label,    # TODO: more terms?
+        model='Topic',
+        documents=list(topic.in_documents.filter(weight__gte=5).values_list('document__id', flat=True)),
+    )
+    stopic.save()
+    return stopic
 
-    def prepare_title(self, instance):
-        """
-        Hellenic Republic
-        """
-        return instance.label
 
-    def get_model(self):
-        return Location
+def _author_from_model_instance(author):
+    sauthor = SAuthor(
+        meta={'id': author.id},
+        label='%s %s' % (author.forename, author.surname),
+        documents=list(author.works.values_list('id', flat=True)),
+        model='Author',
+    )
+    sauthor.body = u'\n'.join([
+        '%s %s' % (author.forename, author.surname),    # Document info?
+    ] + [document.title for document in author.works.all()])
+    sauthor.save()
+    return sauthor
+
+
+def _taxon_from_model_instance(taxon):
+    staxon = STaxon(
+        meta={'id': taxon.id},
+        label=taxon.scientific_name,
+        model='Taxon',
+        rank=taxon.rank,
+        division=taxon.division,
+        documents=list(taxon.occurrences.values_list('document__id', flat=True)),
+    )
+    staxon.body = u'\n'.join([
+        taxon.scientific_name,
+    ] + list(taxon.names.values_list('display_name', flat=True)))
+
+
+indices = [
+    (Document, SDocument, _document_from_model_instance),
+    (Topic, STopic, _topic_from_model_instance),
+    (Author, SAuthor, _author_from_model_instance),
+    (Taxon, STaxon, _taxon_from_model_instance),
+
+]
