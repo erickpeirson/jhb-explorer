@@ -6,7 +6,7 @@ from django.utils.encoding import smart_text
 
 cache = caches['default']
 
-from explorer.models import Author, Topic, TopicDocumentAssignment
+from explorer.models import Author, Topic, TopicDocumentAssignment, TopicPageAssignment
 
 from math import log
 from itertools import combinations, groupby
@@ -18,9 +18,6 @@ def _external_resources(author):
     queryset = author.resources.all()
     return queryset.values_list('resource__resource_location',
                                 'resource__resource_type')
-
-
-
 
 
 def _topic_authors(topic, top=5, min_weight=5.):
@@ -40,7 +37,6 @@ def _topic_authors(topic, top=5, min_weight=5.):
         if not author_id:
             continue
         names[author_id] = u', '.join([surname, forename]).title()
-
         counts[author_id] += value
 
     authors, weights = zip(*counts.items())
@@ -75,6 +71,8 @@ def _similar_authors(author, top=5, norm=True):
             #  rhetorical patterns and emphasize more niche, content-oriented
             #  topics.
             top_authors[author_id] = value * weight / log(topic_count)
+    if len(top_authors) == 0:
+        return []
 
     if norm:
         max_weight = max(top_authors.values())
@@ -111,31 +109,27 @@ def _author_topics(author, top=5, min_weight=5., norm=True):
     # The resultset contains one item per Page,Topic pair, so we have to
     #  separate out the weights and sum them for each Topic.
     topic_counts, topic_labels = Counter(), {}
-    topics, weights, labels = zip(*queryset.values_list(*fields))
+    try:
+        topics, weights, labels = zip(*queryset.values_list(*fields))
+    except ValueError:
+        return []
+
+    qs = TopicPageAssignment.objects.filter(weight__gte=5)
+    topic_assignments = Counter(qs.values_list('topic_id', flat=True))
+    total_assignments = 1.*qs.count()
+    topic_assignments = {k: v/total_assignments for k, v in topic_assignments.iteritems()}
 
     for topic_id, weight, label in zip(topics, weights, labels):
         # We'll use the number of documents containing this topic to weight
         #  similarities, below.
-        topic_count = TopicDocumentAssignment.objects\
-                        .filter(topic_id=topic_id, weight__gte=5)\
-                        .count()
+        # topic_likelihood = 1.*qs.filter(topic_id=topic_id).count()/topic_assignments[topic_id]
 
         # Using the log(count) gives us a smoother weighting than the raw
         #  count value.
-        topic_counts[topic_id] += weight/log(topic_count)
+        topic_counts[topic_id] += weight/topic_assignments[topic_id]
         topic_labels[topic_id] = label
-
-    if norm:
-        # Topic weight is normalized by itself, since the number of pages per
-        #  author will vary widely.
-        max_weight = max(topic_counts.values())
-        topic_counts = {k: 100.*v/max_weight for k, v in topic_counts.iteritems()}
-
-    # We want these all together in a single iterable for ease of use in the
-    #  template.
-    combined_data = zip(topic_counts.keys(),    # Topic ids.
-                        topic_counts.values(),  # Topic weights (normed).
-                        topic_labels.values())  # Topic labels.
+    maxValue = max(topic_counts.values())
+    combined_data = [(k, 100.*v/maxValue, topic_labels[k]) for k, v in topic_counts.iteritems()]
 
     # Sort by weight (descending).
     return sorted(combined_data, key=lambda o: o[1])[::-1][:top]

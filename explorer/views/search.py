@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from explorer.models import *
 
 from explorer.forms import JHBSearchForm
 
@@ -6,6 +7,7 @@ from haystack.generic_views import FacetedSearchView
 from haystack.query import SearchQuerySet
 
 import json
+from collections import Counter
 
 
 class JHBSearchView(FacetedSearchView):
@@ -134,13 +136,66 @@ class JHBSearchView(FacetedSearchView):
         return cdata
 
 
+def suggest_topics(terms_raw, N=5):
+    counts = Counter()
+    for term_raw in terms_raw:
+        qs = Term.objects.filter(term__icontains=term_raw)
+        for tpk, weight in qs.values_list('topic_assignments__topic', 'topic_assignments__weight'):
+            if tpk is None:
+                continue
+            counts[tpk] += weight if weight is not None else 1.
+    if len(counts) > 0:
+        return zip(*sorted(counts.items(), key=lambda o: o[1])[::-1][:N])[0]
+    return []
+
+
 def autocomplete(request):
+    models = {
+        'Topic': (Topic, 'label', 'icontains'),
+        'Document': (Document, 'title', 'istartswith'),
+        'Author': (Author, 'surname', 'istartswith'),
+    }
     query = request.GET.get('q', '')
+    model_name = request.GET.get('model', None)
     if not query:
         suggestions = []
     else:
-        sqs = SearchQuerySet().autocomplete(title=query)[:5]
-        suggestions = [result.title for result in sqs]
+        params = {'title': query}
 
-    response_data = json.dumps({'results': suggestions})
-    return HttpResponse(response_data, content_type='application/json')
+    if model_name == 'Topic':
+        pks = suggest_topics(query.split())
+        qs = Topic.objects.filter(pk__in=pks)
+        suggestions = list(qs.values('label', 'id')[:5])
+    elif model_name is not None:
+        model, field, lookup = models[model_name]
+        qs = model.objects.filter(**{'%s__%s' % (field, lookup): query})
+        suggestions = list(qs.values(field, 'id')[:5])
+    else:
+        suggestions = []
+        for model, field, lookup in models.values():
+            if model_name == 'Topic':
+                pks = suggest_topics(query.split())
+                qs = Topic.objects.filter(pk__in=pks)
+                suggestions = list(qs.values('label', 'id')[:5])
+            else:
+                qs = model.objects.filter(**{'%s__%s' % (field, lookup): query})
+                suggestions += list(qs.values(field, 'id', flat=True)[:5])
+
+    data = {'results': suggestions}
+    return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+# def autocomplete(request):
+#     query = request.GET.get('q', '')
+#     model = request.GET.get('model', None)
+#     if not query:
+#         suggestions = []
+#     else:
+#         params = {'title': query}
+#         if model:
+#             params.update({'result_type': model})
+#         sqs = SearchQuerySet().autocomplete(**params)[:5]
+#         suggestions = [result.title for result in sqs]
+#
+#     response_data = json.dumps({'results': suggestions})
+#     return HttpResponse(response_data, content_type='application/json')

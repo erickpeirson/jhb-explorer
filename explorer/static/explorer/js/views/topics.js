@@ -25,8 +25,7 @@ var opts = {
 
 var minYear = 1968,
     maxYear = 2017;
-var startYear = 1975;
-var endYear = 1990;
+
 var selectedTopic = [];
 var cy;
 var svg,
@@ -106,6 +105,7 @@ var triggerListView = function(e) {
 
     $('.topic-list-item').removeClass('selected');
     $('#topic-list-item-' + selectedTopic[0]).addClass('selected');
+    $('#topicListContainer').scrollTop($('#topicListContainer').scrollTop() + $('#topic-list-item-' + selectedTopic[0]).position().top-50);
 
 }
 
@@ -175,8 +175,7 @@ $(document).ready(function() {
                 $('#listViewList').empty();
                 var getWeight = function(tid) {
                     var _w = topicWeights[Number(tid)].reduce(function(i, e) {
-
-                        if (Number(startYear) <= Number(e.date) && Number(e.date) < Number(endYear)) {
+                        if ((Number(startYear) <= Number(e.date)) && (Number(e.date) < Number(endYear))) {
                             return i + e.value;
                         } else {
                             return i;
@@ -200,7 +199,7 @@ $(document).ready(function() {
                         var w_b = getWeight(b.data.id);///topicProminence[Number(b.data.id)];
                         return ((w_a > w_b) ? -1 : (w_a < w_b) ? 1 : 0);
                     } else {    // Edge.
-                        return -1;
+                        return 1;
                     }
                 }
 
@@ -441,6 +440,7 @@ $(document).ready(function() {
 
                     $('.topic-list-item').removeClass('selected');
                     $('#topic-list-item-' + topic_id).addClass('selected');
+                    $('#topicListContainer').scrollTop($('#topicListContainer').scrollTop() + $('#topic-list-item-' + topic_id).position().top-50);
 
                     var streamElem = d3.select('#topic-stream-area-' + topic_id);
                     streamElem.style('opacity', 1.0);
@@ -468,6 +468,7 @@ $(document).ready(function() {
                 $(document).keyup(function(e) {
                      if (e.keyCode == 27) {
                         clearSelectedTopics();
+                        $('#id_q').val('').attr('pk', '');
                     }
                 });
 
@@ -484,6 +485,7 @@ $(document).ready(function() {
                     displayTopicDetails(selectedTopic[0]);  //cy.$('#' + selectedTopic[0])
                     $('.topic-list-item').removeClass('selected');
                     $('#topic-list-item-' + selectedTopic[0]).addClass('selected');
+                    $('#topicListContainer').scrollTop($('#topicListContainer').scrollTop() + $('#topic-list-item-' + selectedTopic[0]).position().top-50);
                 // If no node is pre-selected, choose a node at random.
                 } else {    // TODO: Number of topics shouldn't be hardcoded.
 
@@ -497,18 +499,11 @@ $(document).ready(function() {
         });
     }
 
-
-
-    // Turn on all tooltips on the page.
-    $(function () {
-        $('[data-toggle="tooltip"]').tooltip()
-    })
-
     var layers,
         years,
         m,
-        n=20,
-        brushPos = [47-(maxYear-startYear), 47-(maxYear-endYear)],
+        n = 20,
+        brushPos = [49 - (maxYear-startYear), 49 - (maxYear-endYear)],
         stack = d3.layout.stack().offset("wiggle");
 
         var color = ["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",

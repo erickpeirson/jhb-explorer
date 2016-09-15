@@ -208,6 +208,10 @@ body {
     background-color: rgba(0, 0, 0, 0);
 }
 
+.panel-transparent .list-group-item {
+    background-color: rgba(0, 0, 0, 0);
+}
+
 .panel-transparent .panel-body {
     color: #A76E07;
 }
@@ -225,7 +229,7 @@ tr.highlight {
 .ac-results {
     position: absolute;
     z-index: 500;
-    top: 35px;
+    /*top: 35px;*/
     border: 1px solid gray;
     background-color: white;
     width: 100%;
@@ -242,4 +246,9 @@ a.active-facet-label:hover {
 
 .resource-logo {
     height: 30px;
+}
+
+
+#topic-suggest {
+    margin-bottom: 10px;
 }

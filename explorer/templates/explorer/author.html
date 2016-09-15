@@ -33,12 +33,35 @@
 
 <div class="row">
     <div class="col-sm-8 col-md-6">
+        <div class="panel panel-transparent panel-sparse">
+            <div class="panel-heading">
+                <span class="h4">Articles by <strong>{{ author }}</strong></span>
+            </div>
+            <div  style="max-height: 600px; overflow-y: scroll;">
+                <table class="table table-condensed small-text">
+                    <tbody id="assignments">
+                        {% for document in documents %}
+                        <tr id="document-{{ document.id }}" class="h6">
+                            <td class="col-xs-1">{{ document.publication_date }}</td>
+                            <td class="col-xs-11">
+                                <a href="{% url "document_detail" document.id %}">{{ document.title }}</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+    <div class="col-sm-4 col-md-6">
         <div class="panel">
             <div id="map" style="height: 300px;"></div>
         </div>
         <div class="row">
             <div class="col-sm-6">
-                <div class="panel panel-sparse">
+                <div class="panel panel-transparent panel-sparse">
                     <div class="panel-heading">
                         <span class="h4">Top {{ topics|length }} topics</span>
                     </div>
@@ -71,7 +94,7 @@
             </div>
             <div class="col-sm-6">
             <!-- Similar authors. -->
-                <div class="panel panel-sparse">
+                <div class="panel panel-transparent panel-sparse">
                     <div class="panel-heading">
                         <span class="h4">Similar authors</span>
                     </div>
@@ -96,33 +119,6 @@
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-4 col-md-6">
-        <div class="panel panel-sparse">
-            <div class="panel-heading">
-                <span class="h4">Articles by <strong>{{ author }}</strong></span>
-            </div>
-            <div  style="max-height: 600px; overflow-y: scroll;">
-                <table class="table table-condensed small-text">
-                    <thead>
-                        <tr>
-                            <td class="col-xs-2">Date</td>
-                            <td class="col-xs-10">Title</td>
-                        </tr>
-                    </thead>
-                    <tbody id="assignments">
-                        {% for document in documents %}
-                        <tr id="document-{{ document.id }}" class="h6">
-                            <td>{{ document.publication_date }}</td>
-                            <td>
-                                <a href="{% url "document_detail" document.id %}">{{ document.title }}</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
             </div>
         </div>
 

@@ -57,6 +57,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'explorer.middleware.StartEndYearMiddleWare',
 )
 
 TEMPLATES = [
@@ -71,6 +72,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'explorer.context_processors.google_analytics_config',
+                'explorer.context_processors.timeline_dates',
             ],
         },
     },
@@ -108,8 +110,8 @@ DATABASES = {
     }
 }
 
-import dj_database_url
-DATABASES['default'] =  dj_database_url.config()
+# import dj_database_url
+# DATABASES['default'] =  dj_database_url.config()
 
 
 # Internationalization
@@ -157,7 +159,7 @@ HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'explorer.elasticsearch_backends.JHBElasticsearch2SearchEngine',
         'URL': es.scheme + '://' + es.hostname + ':' + str(port),
-        'INDEX_NAME': 'documents',
+        'INDEX_NAME': 'jhb',
     },
 }
 

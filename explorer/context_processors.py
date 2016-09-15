@@ -8,3 +8,25 @@ def google_analytics_config(request):
     return {
         'google_analytics_id': settings.GOOGLE_ANALYTICS_ID,
     }
+
+
+def timeline_dates(request):
+    # startYear = request.GET.get('start', None)
+    # endYear = request.GET.get('end', None)
+    # print 'timeline_dates', 'in request', startYear, endYear
+    # if startYear is not None:
+    #     request.session.set('startYear', startYear)
+    # else:
+    #     startYear = request.session.get('startYear', 1975)
+    #
+    # if endYear is not None:
+    #     request.session.set('endYear', endYear)
+    # else:
+    #     endYear = request.session.get('endYear', 1990)
+    #
+    # print 'timeline_dates', 'in final context', startYear, endYear
+    print '!!!', request.startYear
+    return {
+        'startYear': getattr(request, 'startYear', 1975),
+        'endYear': getattr(request, 'endYear', 1990)
+    }

@@ -11,11 +11,12 @@
 
 <div class="container-fluid">
     <div class="panel panel-transparent">
-        <div class="h1 text-warning">{{ document.title }}
+        <div class="h2 text-warning">{{ document.title }}
             {% comment %}
             The doi indicates whether or not the article was provided by JSTOR
             or by Springer.
             {% endcomment %}
+            <span class="small">{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</span>
             {% if document.doi %}
             <!-- Link to original article (by DOI) -->
             <div class="pull-right btn-group">
@@ -26,28 +27,108 @@
                     data-toggle="tooltip"
                     data-placement="left"
                     data-container="body"
-                    title="View original article in JSTOR">
+                    title="View original article">
                     <img src="{{ document.doi|permalink_image }}"
                         class="img img-responsive resource-logo">
                 </a>
             </div>
             {% endif %}
         </div>
-        <div class="h4">{{ document.publication_date }} | Volume: {{document.volume}}, Issue: {{document.issue}}</div>
-        {% for author in document.authors.all %}
-        <a href="{% url "author_detail" author.id  %}">{{ author.forename.title }} {{ author.surname.title }}</a>
-        {%endfor%}
+        <div class="h4">
+            {% for author in document.authors.all %}
+            <a href="{% url "author_detail" author.id  %}">{{ author.forename.title }} {{ author.surname.title }}</a>
+            {%endfor%}
+
+        </div>
+
     </div>
 
     <div class="row">
         <div class="col-sm-9">
-            <div class="panel">
+            <div class="panel panel-transparent">
                 <div class="panel-heading">
                     <h4 class="text-muted pull-right">Topic representation on each page</h4>
                 </div>
                 <div class="panel-body">
                     <div id="topic-barchart"></div>
                 </div>
+            </div>
+
+            <div class="row">
+                <!-- Articles that cite this article. -->
+                {% if document.cited_by.count > 0 %}
+                <div class="col-sm-4">
+                    <div class="panel panel-transparent panel-sparse">
+                        <div class="panel-heading">
+                            <span class="h4">Cited by</span>
+                        </div>
+                        <!-- <div class="panel-body"> -->
+                            <ul class="list-group h6">
+                                {% for citation in document.cited_by.all %}
+                                <a href="{% url "document_detail" citation.id %}"
+                                    class="list-group-item">
+                                    {{ citation.title }} ({{ citation.publication_date }})
+                                </a>
+                                {% endfor %}
+                            </ul>
+                        <!-- </div> -->
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Articles cited by this article. -->
+                {% if document.cites.count > 0 %}
+                <div class="col-sm-4">
+                    <div class="panel panel-transparent panel-sparse">
+                        <div class="panel-heading">
+                            <span class="h4">Cites</span>
+                        </div>
+                        <!-- <div class="panel-body"> -->
+                            <ul class="list-group h6">
+                                {% for citation in document.cites.all %}
+                                <a href="{% url "document_detail" citation.id %}"
+                                    class="list-group-item">
+                                    {{ citation.title }} ({{ citation.publication_date }})
+                                </a>
+                                {% endfor %}
+                            </ul>
+                        <!-- </div> -->
+                    </div>
+                </div>
+                {% endif %}
+
+                {% comment %} Taxonomic references in this document. {% endcomment %}
+                {% if document.taxon_occurrences.count > 0 %}
+                <div class="col-sm-4">
+                    <div class="panel panel-transparent panel-sparse" id="taxon-references">
+                        <div class="panel-heading clearfix">
+                            <span class="h4">Organisms</span>
+                            <button type="button"
+                                class="btn btn-default btn-sm pull-right"
+                                aria-label="Info"
+                                data-toggle="modal"
+                                data-target="#documentOrganismModal">
+                                <span class="glyphicon glyphicon-info-sign"
+                                    aria-hidden="true"
+                                    data-toggle="tooltip"
+                                    data-placement="bottom"
+                                    title="What am I looking at?">
+                                </span>
+                            </button>
+                        </div>
+                        <ul class="list-group h6" id="taxon-references-list">
+                            {% for occurrence in document.taxon_occurrences.all %}
+                            <a href="{% url "organism_detail" occurrence.taxon.id %}"
+                                class="list-group-item">
+                                <em>{{ occurrence.taxon.scientific_name }}</em>
+                                {% if occurrence.taxon.division %}
+                                &nbsp;<span class="label label-primary">{{ occurrence.taxon.division }}</span>
+                                {% endif %}</a>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
         </div>
@@ -65,90 +146,11 @@
                 </div>
 
             </div>
-        </div>
-    </div>
+            {% comment %} Related documents (via the topic model). {% endcomment %}
 
-    <div class="row">
-        <!-- Articles that cite this article. -->
-        {% if document.cited_by.count > 0 %}
-        <div class="col-sm-3">
-            <div class="panel panel-sparse">
-                <div class="panel-heading">
-                    <span class="h4">Cited by</span>
-                </div>
-                <!-- <div class="panel-body"> -->
-                    <ul class="list-group h6">
-                        {% for citation in document.cited_by.all %}
-                        <a href="{% url "document_detail" citation.id %}"
-                            class="list-group-item">
-                            {{ citation.title }} ({{ citation.publication_date }})
-                        </a>
-                        {% endfor %}
-                    </ul>
-                <!-- </div> -->
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- Articles cited by this article. -->
-        {% if document.cites.count > 0 %}
-        <div class="col-sm-3">
-            <div class="panel panel-sparse">
-                <div class="panel-heading">
-                    <span class="h4">Cites</span>
-                </div>
-                <!-- <div class="panel-body"> -->
-                    <ul class="list-group h6">
-                        {% for citation in document.cites.all %}
-                        <a href="{% url "document_detail" citation.id %}"
-                            class="list-group-item">
-                            {{ citation.title }} ({{ citation.publication_date }})
-                        </a>
-                        {% endfor %}
-                    </ul>
-                <!-- </div> -->
-            </div>
-        </div>
-        {% endif %}
-
-        {% comment %} Taxonomic references in this document. {% endcomment %}
-        {% if document.taxon_occurrences.count > 0 %}
-        <div class="col-sm-3">
-            <div class="panel panel-sparse" id="taxon-references">
+            <div class="panel panel-transparent panel-sparse">
                 <div class="panel-heading clearfix">
-                    <span class="h4">Organisms</span>
-                    <button type="button"
-                        class="btn btn-default btn-sm pull-right"
-                        aria-label="Info"
-                        data-toggle="modal"
-                        data-target="#documentOrganismModal">
-                        <span class="glyphicon glyphicon-info-sign"
-                            aria-hidden="true"
-                            data-toggle="tooltip"
-                            data-placement="bottom"
-                            title="What am I looking at?">
-                        </span>
-                    </button>
-                </div>
-                <ul class="list-group h6" id="taxon-references-list">
-                    {% for occurrence in document.taxon_occurrences.all %}
-                    <a href="{% url "organism_detail" occurrence.taxon.id %}"
-                        class="list-group-item">
-                        <em>{{ occurrence.taxon.scientific_name }}</em>
-                        {% if occurrence.taxon.division %}
-                        &nbsp;<span class="label label-primary">{{ occurrence.taxon.division }}</span>
-                        {% endif %}</a>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        {% endif %}
-
-        {% comment %} Related documents (via the topic model). {% endcomment %}
-        <div class="col-sm-3">
-            <div class="panel panel-sparse">
-                <div class="panel-heading clearfix">
-                    <span class="h4">Related</span>
+                    <span class="h4">Related Articles</span>
                     <button type="button"
                         class="btn btn-default btn-sm pull-right"
                         aria-label="Info"
@@ -178,9 +180,6 @@
                     {% endfor %}
                 </ul>
             </div>
-            <script>
-            $('[data-toggle=tooltip]').tooltip();
-            </script>
         </div>
     </div>
 </div>

@@ -34,7 +34,7 @@ var styleLayer = L.mapbox.styleLayer('mapbox://styles/erickpeirson/cin20zapx005p
     .addTo(map);
 
 // TODO: this shouldn't be hard-coded.
-var dataLocation = 'http://127.0.0.1:8000/locations/' + dataLocationURL + '&start=' + start + '&end=' + end;
+var dataLocation = 'http://127.0.0.1:8000/locations/' + dataLocationURL + '&start=' + startYear + '&end=' + endYear;
 
 // Adds clustering behavior to the map.
 L.mapbox.featureLayer(dataLocation).on('ready', function(e) {

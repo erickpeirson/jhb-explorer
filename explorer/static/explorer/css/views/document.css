@@ -25,6 +25,11 @@
 
 
 #related-documents-list {
-    max-height: 200px; 
+    max-height: 300px;
     overflow-y: scroll;
+}
+
+
+#topic-barchart  rect {
+    cursor: pointer;
 }

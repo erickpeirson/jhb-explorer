@@ -9,6 +9,7 @@
 <script src="{% static 'explorer/js/jquery.spin.js' %}"></script>
 <script src="{% static 'explorer/js/cytoscape.min.js' %}"></script>
 
+
 <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.js'></script>
 <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.17.0/mapbox-gl.css' rel='stylesheet' />
 
@@ -19,8 +20,22 @@
     {% block main %}
 <!-- <div class="container-fluid">
     <div class="panel"> -->
-
-
+    <div class="row">
+    <div class="autocomplete" id="topic-suggest">
+        <input type="text" name="q" id="id_q" class="form-control" placeholder="Search for a topic"  autocomplete="off"  />
+        <input type="hidden" name="model" id="id_q" value="Topic" />
+        <input type="hidden" name="pk" id="id_pk" />
+        <div id="autocomplete-results-container"></div>
+    </div>
+    <span id="querysubmit"></span>
+    <script>
+    $('#querysubmit').click(function(e) {
+        var pk = $('#id_pk').val();
+        activateTopic(pk);
+    });
+    </script>
+    {% include "explorer/autocomplete.html" %}
+    </div>
     <!-- First row -->
     <div class="row">
         <!-- Topic network visualization -->

@@ -3,6 +3,11 @@ from haystack.models import SearchResult
 import elasticsearch
 
 
+class JHBDatabaseBackend(object):
+    def search(self, query_string, **kwargs):
+        print query_string
+
+
 class JHBElasticsearch2SearchBackend(Elasticsearch2SearchBackend):
     DEFAULT_SETTINGS = {
         'settings': {

@@ -1,11 +1,12 @@
-var startYear = 1972,
-    endYear = 2013,
-    svg,
+var minYear = 1968,
+    maxYear = 2017;
+
+var svg,
     brush,
     muteLeft,
     muteRight,
     brushg,
-    brushPos = [47-(2013-startYear), 47-(2013-endYear)],
+    brushPos = [(maxYear-minYear)-(maxYear-startYear), (maxYear-minYear)-(maxYear-endYear)],
     years,
     m,
     n=20,
@@ -74,9 +75,8 @@ var redraw = function () {
         muteRight.transition()
             .attr('x', x(s[1]))
             .attr('width', width - x(s[1]));
-        // TODO: should not be hardcoded.
-        startYear = 1968 + s[0];
-        endYear = 1968 + s[1];
+        startYear = minYear + s[0];
+        endYear = minYear + s[1];
 
         refreshOrganismData(startYear, endYear);
         svg.classed("selecting", !d3.event.target.empty());
@@ -220,9 +220,8 @@ var draw = function() {
             .attr('x', x(s[1]))
             .attr('width', width - x(s[1]));
 
-        // TODO: should not be hardcoded.
-        startYear = 1968 + s[0];
-        endYear = 1968 + s[1];
+        startYear = minYear + s[0];
+        endYear = minYear + s[1];
 
         refreshOrganismData(startYear, endYear);
         svg.classed("selecting", !d3.event.target.empty());
@@ -254,9 +253,9 @@ var clearContainingDocuments = function () {
 var addContainingDocuments = function(data) {
     var assignmentsElem = $('#assignments');
     data.documents.forEach(function(doc) {
-        var dateRow = $('<td>' + doc.pubdate + '</td>')
+        var dateRow = $('<td class="col-xs-1">' + doc.pubdate + '</td>')
         var assignmentLinkRow = $('<td><a href="/documents/' + doc.id + '/">' + doc.title + '</a></td>');
-        var progressRow = $('<td><span class="badge">' + doc.weight + '</span></td>');
+        var progressRow = $('<td class="col-xs-1"><span class="badge">' + doc.weight + '</span></td>');
         var rowElem = $('<tr>');
         rowElem.append(dateRow)
             .append(assignmentLinkRow)

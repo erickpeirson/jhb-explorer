@@ -337,7 +337,7 @@ def topic(request, topic_id):
             colocation = TopicCoLocation.objects.get(Q(source_id=topic.id) & Q(target_id=colocated_topic.id))
             topic_colocates.append((colocated_topic, colocation))
 
-        authors = _topic_authors(topic)
+        authors = _topic_authors(topic, 10)
 
         context = RequestContext(request, {
             'topic': topic,

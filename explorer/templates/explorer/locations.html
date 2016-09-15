@@ -78,9 +78,7 @@
 {% include "explorer/modals/locationsModal.html" %}
 
 <script>
-var start = {{ start }},
-    end = {{ end }},
-    topic = "{{ topic }}",
+var topic = "{{ topic }}",
     dataLocationURL = "{{ data }}";
 
 L.mapbox.accessToken = '{{ MAPBOX_TOKEN }}';

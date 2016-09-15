@@ -3,37 +3,49 @@
    // on the page and only the ``$(document).ready(...)`` below would be present.
    // But this is an example.
    var Autocomplete = function(options) {
-       this.form_selector = options.form_selector
-       this.url = options.url || '{% url "autocomplete" %}'
-       this.delay = parseInt(options.delay || 300)
-       this.minimum_length = parseInt(options.minimum_length || 3)
-       this.form_elem = null
-       this.query_box = null
+       this.form_selector = options.form_selector;
+       this.url = options.url || '{% url "autocomplete" %}';
+       this.delay = parseInt(options.delay || 300);
+       this.minimum_length = parseInt(options.minimum_length || 3);
+       this.form_elem = null;
+       this.query_box = null;
    }
 
    Autocomplete.prototype.setup = function() {
-       var self = this
-
-       this.form_elem = $(this.form_selector)
-       this.query_box = this.form_elem.find('input[name=q]')
+       var self = this;
+       this.waiting = false;
+       this.form_elem = $(this.form_selector);
+       this.query_box = this.form_elem.find('input[name=q]');
+       this.model_input = this.form_elem.find('input[name=model]');
+       this.results_container = this.form_elem.find('#autocomplete-results-container');
 
        // Watch the input box.
        this.query_box.on('keyup', function() {
-
-           var query = self.query_box.val()
-           console.log(query);
-
-           if(query.length < self.minimum_length) {
-               return false
+           if (self.waiting) {
+               return false;
+           } else {
+               self.waiting = true;
            }
+           setTimeout(function() {
+               var query = self.query_box.val();
+               var model = self.model_input.val();
 
-           self.fetch(query)
+               if(query.length < self.minimum_length) {
+                   $('.ac-results').remove();
+
+                   return false;
+               }
+
+               self.fetch(query, model);
+           }, 1000)
+
        })
 
        // On selecting a result, populate the search field and submit.
        this.form_elem.on('click', '.ac-result', function(ev) {
            self.query_box.val($(this).text())
-           $('.ac-results').remove()
+           $('.ac-results').remove();
+           $('#id_pk').val($(this).attr('pk'));
            $('#querysubmit').click();
 
            return false
@@ -42,16 +54,22 @@
 
    }
 
-   Autocomplete.prototype.fetch = function(query) {
-       var self = this
-
+   Autocomplete.prototype.fetch = function(query, model) {
+       var self = this;
+       self.waiting = true;
+       var payload = {
+           'q': query,
+       }
+       if (model) payload['model'] = model;
        $.ajax({
            url: this.url
-           , data: {
-               'q': query
-           }
+           , data: payload
            , success: function(data) {
-               self.show_results(data)
+               self.waiting = false;
+               self.show_results(data);
+
+           }, failure: function(data) {
+               self.waiting = false;
            }
        })
    }
@@ -70,7 +88,7 @@
                var elem = base_elem.clone()
                // Don't use .html(...) here, as you open yourself to XSS.
                // Really, you should use some form of templating.
-               elem.find('.ac-result').text(results[res_offset])
+               elem.find('.ac-result').text(results[res_offset].label).attr('pk', results[res_offset].id);
                results_wrapper.append(elem)
            }
        }
@@ -80,7 +98,7 @@
            results_wrapper.append(elem)
        }
 
-       this.query_box.after(results_wrapper)
+       this.results_container.append(results_wrapper)
    }
 
    $(document).ready(function() {

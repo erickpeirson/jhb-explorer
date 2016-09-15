@@ -1,7 +1,5 @@
 var minYear = 1968,
     maxYear = 2017;
-var startYear = 1968;
-var endYear = 2017;
 
 $('body').ready(function() {
     var layers,
@@ -10,7 +8,7 @@ $('body').ready(function() {
         years,
         m,
         n=20,
-        brushPos = [5, 20],
+        brushPos = [(maxYear - minYear) - (maxYear-startYear), (maxYear - minYear) - (maxYear-endYear)],
         stack = d3.layout.stack().offset("wiggle");
 
     var color = ["#AA9A66", "#B74934", "#221100", "#577492", "#67655D", "#332C2F", "#A81A00", "#4C3F3D", "#996622", "#117788",
@@ -374,7 +372,7 @@ $('body').ready(function() {
         redraw(layers);
         redrawPie();
         loadOrganisms();
-        
+
         d3.select(window).on('resize', resize);
     });
 

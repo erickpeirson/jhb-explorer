@@ -115,23 +115,31 @@ def _organism_json(taxon, **kwargs):
 
     document_queryset = TaxonDocumentOccurrence.objects\
         .filter(taxon_id__in=taxon.children())\
-        .order_by('-weight')\
+        .order_by('document', '-weight')\
         .filter(document__publication_date__gte=start)\
         .filter(document__publication_date__lt=end)\
         .select_related('document')
 
     weight_agg = document_queryset.aggregate(max_weight=Max('weight'))
+    documents = []
+    for pk, document_group in groupby(document_queryset, key=lambda o: o.document.id):
+        # The groupby iterator is consumed on the first pass, and we need it
+        #  for several things.
+        assignments = [asn for asn in document_group]
+        weight = sum([asn.weight for asn in assignments])
+        documents.append({
+            'id': assignments[0].document.id,
+            'title': assignments[0].document.title,
+            'pubdate': assignments[0].document.publication_date,
+            'weight': weight
+        })
+
     return {
         'id': taxon.id,
         'label': taxon.scientific_name,
         'document_count': document_queryset.count(),
         'max_weight': weight_agg['max_weight'],
-        'documents': [{
-            'id': assignment.document.id,
-            'title': assignment.document.title,
-            'pubdate': assignment.document.publication_date,
-            'weight': assignment.weight
-        } for assignment in document_queryset]
+        'documents': documents,
     }
 
 
@@ -151,9 +159,6 @@ def _organism_resources(taxon, **kwargs):
         names.append(n)
         categories.append(zip(types, sresources))
     return zip(range(len(names)), names, categories)
-
-
-
 
 
 def _divisions_time(**kwargs):
@@ -239,8 +244,8 @@ def organism(request, taxon_id):
     """
 
     data = request.GET.get('data', None)
-    start = int(request.GET.get('start', 1968))
-    end = int(request.GET.get('end', 2018))
+    start = int(request.GET.get('start', request.session.get('startYear', 1968)))
+    end = int(request.GET.get('end', request.session.get('endYear', 2018)))
     depth = int(request.GET.get('depth', 2))
 
     cache_key = 'organism__%s__%s__%i_%i__%i' % (data, taxon_id,
@@ -257,7 +262,7 @@ def organism(request, taxon_id):
     taxon = get_object_or_404(Taxon, pk=taxon_id)
 
     if data == 'time':      # Data about the occurrence of the taxon over time.
-        response_data = json.dumps(_organism_time(taxon, start=start, end=end))
+        response_data = json.dumps(_organism_time(taxon, start=1968, end=2018))
     elif data == 'tree':    # Local lineage data for the focal taxon.
         response_data = json.dumps(_organism_tree(taxon, depth=depth))
     elif data == 'json':    # Data about the documents where the taxon occurs.
@@ -282,15 +287,16 @@ def organisms(request):
     """
 
     data = request.GET.get('data', None)
-    start = request.GET.get('start', 1968)
-    end = request.GET.get('end', 2018)
+    start = int(request.GET.get('start', request.session.get('startYear', 1975)))
+    end = int(request.GET.get('end', request.session.get('endYear', 1990)))
     division = request.GET.get('division', None)
 
     if data is not None:
         if data == 'time':
-            raw_data = _divisions_time(start=start, end=end)
+            raw_data = _divisions_time(start=1968, end=2018)
+
         elif data == 'json':
-            raw_data = _organisms_json(start=start, end=end, division=division)
+            raw_data = _organisms_json(start=request.startYear, end=request.endYear, division=division)
 
         content_type = "application/json"
         response_data = json.dumps(raw_data)

@@ -2,6 +2,10 @@
 
 <html>
     <head>
+        <script>
+        var startYear = {{startYear}}; // 1975
+        var endYear = {{endYear}}; // 1990
+        </script>
         <script type="text/javascript" src="{% static "explorer/js/jquery-1.11.3.min.js" %}"></script>
         <script type="text/javascript" src="{% static "explorer/js/jquery-ui.min.js" %}"></script>
         <link rel="stylesheet" href="{% static "explorer/css/jquery-ui.min.css" %}">
@@ -62,6 +66,10 @@
 
         </script>
         {% endif %}
+
+        <script>
+        $('[data-toggle=tooltip]').tooltip();
+        </script>
     </body>
 
 </html>
