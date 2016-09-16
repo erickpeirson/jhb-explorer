@@ -11,6 +11,7 @@ def google_analytics_config(request):
 
 
 def timeline_dates(request):
+    print 'asdf'*40
     # startYear = request.GET.get('start', None)
     # endYear = request.GET.get('end', None)
     # print 'timeline_dates', 'in request', startYear, endYear
@@ -27,6 +28,6 @@ def timeline_dates(request):
     # print 'timeline_dates', 'in final context', startYear, endYear
     print '!!!', request.startYear
     return {
-        'startYear': getattr(request, 'startYear', 1975),
-        'endYear': getattr(request, 'endYear', 1990)
+        'startYear': getattr(request, 'startYear') or 1975,
+        'endYear': getattr(request, 'endYear') or 1990)
     }

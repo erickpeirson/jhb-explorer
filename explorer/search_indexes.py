@@ -1,60 +1,78 @@
+from django.conf import settings
+
 from explorer.models import *
-from elasticsearch_dsl import DocType, String, Date, Integer
+from elasticsearch_dsl import DocType, String, Date, Integer, Nested, Float
+from elasticsearch_dsl import analyzer, tokenizer
+
+jhb_analyzer = analyzer('jhb_analyzer',
+    tokenizer=tokenizer('jhb_edge_ngram_tokenizer', 'edgeNGram', min_gram=3, max_gram=5),
+    filter=['lowercase']
+)
+
 import datetime
 
 class SDocument(DocType):
     label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
     body = String(analyzer='snowball')
-    authors = String(index='not_analyzed')
-    topics = String(index='not_analyzed')
+    authors = Integer(index='not_analyzed', multi=True)
+    topics = Integer(index='not_analyzed', multi=True)
     model = String(index='not_analyzed')
     publication_date = Date()
 
     class Meta:
-        index = 'jhb_index'
+        index = settings.ELASTICSEARCH_INDEX
 
 
 class STopic(DocType):
     label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
     body = String(analyzer='snowball')
     model = String(index='not_analyzed')
-    documents = Integer(index='not_analyzed')
+    documents = Integer(index='not_analyzed', multi=True)
 
     class Meta:
-        index = 'jhb_index'
+        index = settings.ELASTICSEARCH_INDEX
 
 
 class SAuthor(DocType):
     label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
     body = String(analyzer='snowball')
     model = String(index='not_analyzed')
-    topics = Integer(index='not_analyzed')
-    documents = Integer(index='not_analyzed')
+    topics = Integer(index='not_analyzed', multi=True)
+    documents = Integer(index='not_analyzed', multi=True)
 
     class Meta:
-        index = 'jhb_index'
+        index = settings.ELASTICSEARCH_INDEX
 
 
 class STaxon(DocType):
     label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
     body = String(analyzer='snowball')
     model = String(index='not_analyzed')
-    documents = Integer(index='not_analyzed')
+    documents = Integer(index='not_analyzed', multi=True)
     rank = String(index='not_analyzed')
     division = String(index='not_analyzed')
 
     class Meta:
-        index = 'jhb_index'
+        index = settings.ELASTICSEARCH_INDEX
+
+
+class SGeo(DocType):
+    latitude = Float(index='not_analyzed')
+    longitude = Float(index='not_analyzed')
+
+    class Meta:
+        index = settings.ELASTICSEARCH_INDEX
 
 
 class SLocation(DocType):
     label = String(analyzer='snowball', fields={'raw': String(index='not_analyzed')})
     body = String(analyzer='snowball')
     model = String(index='not_analyzed')
-    documents = Integer(index='not_analyzed')
+    documents = Integer(index='not_analyzed', multi=True)
+    location = Nested(SGeo)
 
     class Meta:
-        index = 'jhb_index'
+        index = settings.ELASTICSEARCH_INDEX
 
 
 def _document_from_model_instance(document):
@@ -106,6 +124,23 @@ def _taxon_from_model_instance(taxon):
     staxon.body = u'\n'.join([
         taxon.scientific_name,
     ] + list(taxon.names.values_list('display_name', flat=True)))
+    staxon.save()
+    return staxon
+
+
+def _location_from_model_instance(location):
+    slocation = SLocation(
+        meta={'id': location.id},
+        label=location.label,
+        model='Location',
+        body=u'\n'.join([location.label, location.alternate_names]),
+        documents=list(location.documents.values_list('document__id', flat=True)),
+    )
+    loc = SGeo(latitude=location.latitude, longitude=location.longitude)
+    loc.save()
+    slocation.location = loc
+    slocation.save()
+    return slocation
 
 
 indices = [
@@ -113,5 +148,5 @@ indices = [
     (Topic, STopic, _topic_from_model_instance),
     (Author, SAuthor, _author_from_model_instance),
     (Taxon, STaxon, _taxon_from_model_instance),
-
+    (Location, SLocation, _location_from_model_instance),
 ]

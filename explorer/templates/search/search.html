@@ -15,7 +15,7 @@
                     </button>
                 </div>
                 <div class="input-group">
-                    {{ form.q }}
+                    <input name="q" type="text" id="id_q" class="form-control" {% if query %}value="{{ query }}{% endif %}"/>
                     <span class="input-group-btn">
                         <button type="submit" class="btn" id="querysubmit"><i class="fa fa-search"></i> Go</button>
                     </span>
@@ -128,14 +128,14 @@
         <!-- Search results. -->
         <div class="col-sm-8">
             <ul class="list-group">
-            {% for result in page_obj.object_list %}
+            {% for result in results %}
                 {% comment %}
                 Result icon and coloring is determined by the result type (e.g.
                 Author, Document, Location).
                 {% endcomment %}
-                <a href="{{ result.object.get_absolute_url }}" class="list-group-item {% if result.model_name == 'document' %}list-group-item-primary{% elif result.model_name == 'author' %}list-group-item-warning{%  elif result.model_name == 'topic' %}list-group-item-info{%  elif result.model_name == 'taxon' %}list-group-item-success{%  elif result.model_name == 'location' %}list-group-item-danger{% endif %}">
-                    <i class="glyphicon {% if result.model_name == 'document' %}glyphicon-book{% elif result.model_name == 'author' %}glyphicon-user{%  elif result.model_name == 'topic' %}glyphicon-asterisk{%  elif result.model_name == 'taxon' %}glyphicon-leaf{%  elif result.model_name == 'location' %}glyphicon glyphicon-globe{% endif %}"></i>
-                    <span class="h5">{% if result.model_name == 'taxon' %}<em>{% endif %}{{ result.title }}{% if result.model_name == 'taxon' %}</em>{% endif %}</span>
+                <a href="{{result.model|get_absolute_url:result.meta.id }}" class="list-group-item {% if result.model == 'Document' %}list-group-item-primary{% elif result.model == 'Author' %}list-group-item-warning{%  elif result.model == 'Topic' %}list-group-item-info{%  elif result.model == 'Taxon' %}list-group-item-success{%  elif result.model == 'Location' %}list-group-item-danger{% endif %}">
+                    <i class="glyphicon {% if result.model == 'Document' %}glyphicon-book{% elif result.model == 'Author' %}glyphicon-user{%  elif result.model == 'Topic' %}glyphicon-asterisk{%  elif result.model == 'Taxon' %}glyphicon-leaf{%  elif result.model == 'Location' %}glyphicon glyphicon-globe{% endif %}"></i>
+                    <span class="h5">{% if result.model == 'taxon' %}<em>{% endif %}{{ result.label }}{% if result.model == 'taxon' %}</em>{% endif %}</span>
                 </a>
             {% endfor %}
             </ul>

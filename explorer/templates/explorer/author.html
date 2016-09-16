@@ -38,13 +38,13 @@
                 <span class="h4">Articles by <strong>{{ author }}</strong></span>
             </div>
             <div  style="max-height: 600px; overflow-y: scroll;">
-                <table class="table table-condensed small-text">
+                <table class="table table-condensed">
                     <tbody id="assignments">
                         {% for document in documents %}
                         <tr id="document-{{ document.id }}" class="h6">
-                            <td class="col-xs-1">{{ document.publication_date }}</td>
+                            <td class="col-xs-1" style="font-size: 11pt;">{{ document.publication_date }}</td>
                             <td class="col-xs-11">
-                                <a href="{% url "document_detail" document.id %}">{{ document.title }}</a>
+                                <a href="{% url "document_detail" document.id %}"  style="font-size: 11pt;">{{ document.title }}</a>
                             </td>
                         </tr>
                         {% endfor %}

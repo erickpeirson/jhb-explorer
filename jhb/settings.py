@@ -41,7 +41,6 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'haystack',
     'django_extensions',
     'rest_framework',
     'explorer',
@@ -152,21 +151,11 @@ CACHES = {
     }
 }
 
-es = urlparse(os.environ.get('SEARCHBOX_URL') or 'http://127.0.0.1:9200/')
-port = es.port or 80
+ELASTICSEARCH_HOST = os.environ.get('SEARCHBOX_URL', 'http://127.0.0.1:9200/')#urlparse( or )
+ELASTICSEARCH_PORT = 9200 #
+ELASTICSEARCH_INDEX = 'jhb_index3'
+SEARCH_PAGE_SIZE = 20
 
-HAYSTACK_CONNECTIONS = {
-    'default': {   # 'explorer.elasticsearch_backends.JHBElasticsearch2SearchEngine',
-        'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
-        'URL': str(es.scheme + '://' + es.hostname + ':' + str(port)),
-        'INDEX_NAME': 'jhb',
-    },
-}
-
-if es.username:
-    HAYSTACK_CONNECTIONS['default']['KWARGS'] = {"http_auth": es.username + ':' + es.password}
-
-HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 VOGONWEB = 'http://www.vogonweb.net'
 
@@ -174,7 +163,6 @@ VOGONWEB = 'http://www.vogonweb.net'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SSLIFY_DISABLE = True       # The development server will choke on SSL.
 
-HAYSTACK_SEARCH_RESULTS_PER_PAGE = 20
 
 
 GOOGLE_ANALYTICS_ID = os.environ.get('GOOGLE_ANALYTICS_ID', None)

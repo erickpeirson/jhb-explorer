@@ -1,11 +1,11 @@
 from django import forms
 
-from haystack.forms import FacetedSearchForm
-from haystack.query import SQ
-from haystack.inputs import AutoQuery
+# from haystack.forms import FacetedSearchForm
+# from haystack.query import SQ
+# from haystack.inputs import AutoQuery
 
 
-class JHBSearchForm(FacetedSearchForm):
+class JHBSearchForm(forms.Form):
     """
     This is the main multi-content search form, used on the front (home) page
     and the main search view (/search/).

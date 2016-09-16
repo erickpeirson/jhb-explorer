@@ -1,7 +1,7 @@
 from django import template
 from django.contrib.staticfiles.templatetags.staticfiles import static
 
-from explorer.models import ExternalResource
+from explorer.models import *
 
 import math
 register = template.Library()
@@ -59,3 +59,9 @@ def get_resource_label(resource_type):
         ExternalResource.VIAF: 'Virtual Internet Authority File',
     }
     return types.get(resource_type, None)
+
+
+@register.filter
+def get_absolute_url(model_name, instance_id):
+    model_class = eval(model_name)
+    return model_class.objects.get(pk=instance_id).get_absolute_url()

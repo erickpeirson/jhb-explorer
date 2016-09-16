@@ -1,8 +1,7 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from explorer.views.search import JHBSearchView, autocomplete
 import explorer
-from explorer.views import topics, organisms, documents, authors, locations
+from explorer.views import topics, organisms, documents, authors, locations, search
 # from haystack.query import SearchQuerySet
 #
 # sqs = SearchQuerySet().facet('authors')
@@ -19,8 +18,8 @@ urlpatterns = [
     url(r'^authors/(?P<author_id>[0-9]+)/$', authors.author, name='author_detail'),
     url(r'^locations/$', locations.locations, name='locations'),
     url(r'^locations/(?P<location_id>[0-9]+)/$', locations.location, name='location_detail'),
-    url(r'^(?i)search/', JHBSearchView.as_view(), name='search'),
-    url(r'^autocomplete/', autocomplete, name='autocomplete'),
+    url(r'^(?i)search/', search.search, name='search'),
+    url(r'^autocomplete/', search.autocomplete, name='autocomplete'),
     url(r'^about/$', explorer.views.about, name='about'),
     url(r'^methods/$', explorer.views.about, name='methods'),
 ]
